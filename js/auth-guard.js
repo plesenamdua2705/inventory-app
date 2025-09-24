@@ -1,8 +1,7 @@
 // /js/auth-guard.js
-import { auth } from "./firebase-init.js";
-import { db } from "./firebase-init.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
 /**
  * Panggil guardPage({ allow: ['admin', 'contributor'] })
@@ -46,4 +45,5 @@ export function guardPage(
     }
   });
 }
+
 
