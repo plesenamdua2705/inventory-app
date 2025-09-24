@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
@@ -66,100 +65,59 @@
 	<script type="module" src="/js/firebase-init.js"></script>
 
 	<!-- 2) Enhancer Login (ADD-ONLY) -->
-	<script type="module">
-	  import { auth } from "/js/firebase-init.js";
-	  // Samakan versi ini dengan yang Anda pakai di firebase-init.js saat nanti saya koreksi
-	  import {
-		onAuthStateChanged,
-		signInWithEmailAndPassword,
-		setPersistence,
-		browserLocalPersistence,
-		browserSessionPersistence
-	  } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+	<script type="module" srcript>
+<script type="module">
+  import { auth, ensureUserDoc } from "./js/firebase-init.js";
+  import {
+    signInWithEmailAndPassword,
+    setPersistence,
+    browserLocalPersistence,
+    browserSessionPersistence
+  } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 
-	  // Jika sudah login, langsung ke dashboard
-	  onAuthStateChanged(auth, (user) => {
-		if (user) window.location.href = "/index.html";
-	  });
+  const form = document.getElementById('loginForm');
+  const emailEl = document.getElementById('email');
+  const passEl = document.getElementById('password');
+  const rememberEl = document.getElementById('remember');
+  const errBox = document.getElementById('errorBox');
 
-	  // Sisipkan style minimal (opsional)
-	  const style = document.createElement("style");
-	  style.textContent = `
-		#login-enhancer { max-width: 420px; margin: 1.25rem auto; padding: 1rem 1.25rem; border:1px solid #e5e7eb; border-radius:12px; background:#fff; box-shadow:0 6px 20px rgba(0,0,0,.06); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-		#login-enhancer h2 { margin:.25rem 0 .75rem; font-size:1.15rem; }
-		#login-enhancer label { display:block; margin:.65rem 0 .35rem; font-weight:600; }
-		#login-enhancer input { width:100%; padding:.6rem .75rem; border:1px solid #cbd5e1; border-radius:10px; }
-		#login-enhancer .row { display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-top:.5rem; }
-		#login-enhancer button { margin-top:.75rem; padding:.6rem .9rem; border:0; border-radius:10px; background:#2563eb; color:#fff; cursor:pointer; }
-		#login-enhancer button[disabled]{ opacity:.7; cursor:not-allowed; }
-		#login-enhancer .msg { margin-top:.6rem; font-size:.95rem; }
-		#login-enhancer .err { color:#b91c1c; } .ok{ color:#065f46; }
-	  `;
-	  document.head.appendChild(style);
+  function showError(msg) {
+    if (!errBox) { alert(msg); return; }
+    errBox.textContent = msg;
+    errBox.style.display = 'block';
+  }
 
-	  // Buat form login secara dinamis (tanpa mengubah konten asli)
-	  const wrap = document.createElement("div");
-	  wrap.id = "login-enhancer";
-	  wrap.innerHTML = `
-		<h2>Login</h2>
-		<form id="loginForm" novalidate>
-		  <label for="loginEmail">Email</label>
-		  <input id="loginEmail" type="email" autocomplete="email" required placeholder="nama@perusahaan.com" />
-		  <label for="loginPassword">Password</label>
-		  <input id="loginPassword" type="password" autocomplete="current-password" required />
-		  <div class="row">
-			<label style="display:flex; align-items:center; gap:.5rem; font-weight:500;">
-			  <input id="loginRemember" type="checkbox" /> Remember me
-			</label>
-			<a href="/forgot-password.html">Forgot Password?</a>
-		  </div>
-		  <button id="btnLogin" type="submit">Login</button>
-		  <div id="loginMsg" class="msg" role="status" aria-live="polite"></div>
-		</form>
-	  `;
-	  document.body.appendChild(wrap);
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    const email = emailEl.value.trim();
+    const password = passEl.value;
+    if (!email || !password) {
+      showError('Email dan password wajib diisi.');
+      return;
+    }
+    const persistence = (rememberEl && rememberEl.checked)
+      ? browserLocalPersistence
+      : browserSessionPersistence;
+    try {
+      await setPersistence(auth, persistence);
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      await ensureUserDoc(user);
+      window.location.href = 'index.html';
+    } catch (err) {
+      const map = {
+        'auth/invalid-email': 'Format email tidak valid.',
+        'auth/user-disabled': 'Akun dinonaktifkan.',
+        'auth/user-not-found': 'Akun tidak ditemukan.',
+        'auth/wrong-password': 'Password salah.'
+      };
+      showError(map[err.code] || 'Gagal login. Silakan coba lagi.');
+    }
+  };
 
-	  // Handler login
-	  const form = wrap.querySelector("#loginForm");
-	  const emailEl = wrap.querySelector("#loginEmail");
-	  const passEl  = wrap.querySelector("#loginPassword");
-	  const rememberEl = wrap.querySelector("#loginRemember");
-	  const btn = wrap.querySelector("#btnLogin");
-	  const msg = wrap.querySelector("#loginMsg");
-
-	  form.addEventListener("submit", async (e) => {
-		e.preventDefault();
-		msg.textContent = ""; msg.className = "msg";
-		const email = emailEl.value.trim();
-		const password = passEl.value;
-
-		if (!email) { msg.textContent = "Email wajib diisi."; msg.classList.add("err"); emailEl.focus(); return; }
-		if (!password) { msg.textContent = "Password wajib diisi."; msg.classList.add("err"); passEl.focus(); return; }
-
-		try {
-		  btn.disabled = true;
-		  // Atur persistensi sesuai Remember me
-		  try {
-			await setPersistence(auth, rememberEl.checked ? browserLocalPersistence : browserSessionPersistence);
-		  } catch (_) { /* diabaikan jika sudah diatur global */ }
-
-		  await signInWithEmailAndPassword(auth, email, password);
-		  window.location.href = "/index.html";
-		} catch (err) {
-		  console.error(err);
-		  let text = "Login gagal. Periksa email & password Anda.";
-		  if (err.code === "auth/invalid-email") text = "Format email tidak valid.";
-		  if (err.code === "auth/user-disabled") text = "Akun dinonaktifkan. Hubungi admin.";
-		  if (err.code === "auth/user-not-found") text = "Email tidak terdaftar.";
-		  if (err.code === "auth/wrong-password") text = "Password salah.";
-		  if (err.code === "auth/too-many-requests") text = "Terlalu banyak percobaan. Coba lagi beberapa saat.";
-		  if (err.code === "auth/network-request-failed") text = "Masalah jaringan. Cek koneksi internet Anda.";
-		  msg.textContent = text; msg.classList.add("err");
-		} finally {
-		  btn.disabled = false;
-		}
-	  });
-	</script>
+  if (form) form.addEventListener('submit', onSubmit);
+  const btn = document.getElementById('btnLogin');
+  if (btn && !form) btn.addEventListener('click', onSubmit);
+</script>
 	
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
