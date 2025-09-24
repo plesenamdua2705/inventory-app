@@ -26,7 +26,7 @@ export function guardPage(
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
       const data = userSnap.exists() ? userSnap.data() : {};
-      const role = data.role || 'viewer';
+      const role = (data && data.role) ?? 'viewer';
       const disabled = !!data.disabled;
 
       if (disabled) {
@@ -46,3 +46,4 @@ export function guardPage(
     }
   });
 }
+
