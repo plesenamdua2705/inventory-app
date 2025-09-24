@@ -63,61 +63,62 @@
 	
 	<!-- 1) Inisialisasi Firebase -->
 	<script type="module" src="/js/firebase-init.js"></script>
-
+	<script type="module" src="/js/firebase-auth.js"></script>
+	
 	<!-- 2) Enhancer Login (ADD-ONLY) -->
 	<script type="module" srcript>
-<script type="module">
-  import { auth, ensureUserDoc } from "./js/firebase-init.js";
-  import {
-    signInWithEmailAndPassword,
-    setPersistence,
-    browserLocalPersistence,
-    browserSessionPersistence
-  } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-
-  const form = document.getElementById('loginForm');
-  const emailEl = document.getElementById('email');
-  const passEl = document.getElementById('password');
-  const rememberEl = document.getElementById('remember');
-  const errBox = document.getElementById('errorBox');
-
-  function showError(msg) {
-    if (!errBox) { alert(msg); return; }
-    errBox.textContent = msg;
-    errBox.style.display = 'block';
-  }
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    const email = emailEl.value.trim();
-    const password = passEl.value;
-    if (!email || !password) {
-      showError('Email dan password wajib diisi.');
-      return;
-    }
-    const persistence = (rememberEl && rememberEl.checked)
-      ? browserLocalPersistence
-      : browserSessionPersistence;
-    try {
-      await setPersistence(auth, persistence);
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
-      await ensureUserDoc(user);
-      window.location.href = 'index.html';
-    } catch (err) {
-      const map = {
-        'auth/invalid-email': 'Format email tidak valid.',
-        'auth/user-disabled': 'Akun dinonaktifkan.',
-        'auth/user-not-found': 'Akun tidak ditemukan.',
-        'auth/wrong-password': 'Password salah.'
-      };
-      showError(map[err.code] || 'Gagal login. Silakan coba lagi.');
-    }
-  };
-
-  if (form) form.addEventListener('submit', onSubmit);
-  const btn = document.getElementById('btnLogin');
-  if (btn && !form) btn.addEventListener('click', onSubmit);
-</script>
+	<script type="module">
+	  import { auth, ensureUserDoc } from "/js/firebase-init.js";
+	  import {
+	    signInWithEmailAndPassword,
+	    setPersistence,
+	    browserLocalPersistence,
+	    browserSessionPersistence
+	  } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+	
+	  const form = document.getElementById('loginForm');
+	  const emailEl = document.getElementById('email');
+	  const passEl = document.getElementById('password');
+	  const rememberEl = document.getElementById('remember');
+	  const errBox = document.getElementById('errorBox');
+	
+	  function showError(msg) {
+	    if (!errBox) { alert(msg); return; }
+	    errBox.textContent = msg;
+	    errBox.style.display = 'block';
+	  }
+	
+	  const onSubmit = async (e) => {
+	    e.preventDefault();
+	    const email = emailEl.value.trim();
+	    const password = passEl.value;
+	    if (!email || !password) {
+	      showError('Email dan password wajib diisi.');
+	      return;
+	    }
+	    const persistence = (rememberEl && rememberEl.checked)
+	      ? browserLocalPersistence
+	      : browserSessionPersistence;
+	    try {
+	      await setPersistence(auth, persistence);
+	      const { user } = await signInWithEmailAndPassword(auth, email, password);
+	      await ensureUserDoc(user);
+	      window.location.href = 'index.html';
+	    } catch (err) {
+	      const map = {
+	        'auth/invalid-email': 'Format email tidak valid.',
+	        'auth/user-disabled': 'Akun dinonaktifkan.',
+	        'auth/user-not-found': 'Akun tidak ditemukan.',
+	        'auth/wrong-password': 'Password salah.'
+	      };
+	      showError(map[err.code] || 'Gagal login. Silakan coba lagi.');
+	    }
+	  };
+	
+	  if (form) form.addEventListener('submit', onSubmit);
+	  const btn = document.getElementById('btnLogin');
+	  if (btn && !form) btn.addEventListener('click', onSubmit);
+	</script>
 	
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
