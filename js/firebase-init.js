@@ -1,13 +1,13 @@
 // /js/firebase-init.js
 // Gunakan modular SDK (CDN)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/{FIREBASE_VERSION}/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence,
   signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile
-} from "https://www.gstatic.com/firebasejs/{FIREBASE_VERSION}/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/{FIREBASE_VERSION}/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
 // --- MASUKKAN CONFIG DARI FIREBASE CONSOLE ---
 const firebaseConfig = {
@@ -47,3 +47,4 @@ export async function ensureUserDoc(user) {
 onAuthStateChanged(auth, async (user) => {
   if (user) await ensureUserDoc(user);
 });
+
