@@ -1,11 +1,8 @@
-// /js/user-menu.js
+// /js/user-menu.js (versi tanpa template HTML)
 import { auth, db } from "./firebase-init.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
-/**
- * Render & kelola dropdown user (kanan atas).
- */
 export function mountUserMenu({
   rootSelector = "#user-menu-root",
   profileUrl = "./profile.html",
@@ -14,70 +11,87 @@ export function mountUserMenu({
   showRoleBadge = false,
 } = {}) {
   const root = document.querySelector(rootSelector);
-  if (!root) {
-    console.warn("[user-menu] container tidak ditemukan:", rootSelector);
-    return () => {};
-  }
+  if (!root) { console.warn("[user-menu] container tidak ditemukan:", rootSelector); return () => {}; }
 
-  // Markup dropdown (pakai href langsung ke file tujuan)
-  root.innerHTML = `
-    <div class="user-menu position-relative" style="z-index:1050;">
-      <button class="user-menu__button btn btn-light d-flex align-items-center gap-2"
-              type="button" aria-haspopup="true" aria-expanded="false">
-        <span class="user-menu__avatar rounded-circle bg-secondary text-white d-inline-flex
-                     align-items-center justify-content-center" style="width:28px;height:28px;font-weight:600">?</span>
-        <span class="user-menu__name">Memuat...</span>
-      </button>
+  // Wrapper
+  const wrap = document.createElement("div");
+  wrap.className = "user-menu position-relative";
+  wrap.style.zIndex = "1050";
 
-      <div class="user-menu__dropdown card shadow-sm"
-           style="display:none; position:absolute; right:0; top:110%; min-width:200px;">
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item">
-            ${profileUrl}Profile</a>
-          </li>
-          <li class="list-group-item">
-            ${aboutUrl}About</a>
-          </li>
-          <li class="list-group-item">
-            <button type="button" data-user-menu="logout" class="btn btn-link text-danger p-0">Logout</button>
-          </li>
-        </ul>
-      </div>
-    </div>
-  `;
+  // Button
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "user-menu__button btn btn-light d-flex align-items-center gap-2";
+  btn.setAttribute("aria-haspopup", "true");
+  btn.setAttribute("aria-expanded", "false");
 
-  const btn      = root.querySelector(".user-menu__button");
-  const dropdown = root.querySelector(".user-menu__dropdown");
-  const nameEl   = root.querySelector(".user-menu__name");
-  const avatarEl = root.querySelector(".user-menu__avatar");
-  const btnLogout = root.querySelector('[data-user-menu="logout"]');
+  const avatar = document.createElement("span");
+  avatar.className = "user-menu__avatar rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center";
+  avatar.style.width = "28px";
+  avatar.style.height = "28px";
+  avatar.style.fontWeight = "600";
+  avatar.textContent = "?";
 
-  // Toggle dropdown
-  const setOpen = (open) => {
-    btn.setAttribute("aria-expanded", String(open));
-    dropdown.style.display = open ? "block" : "none";
-  };
+  const nameEl = document.createElement("span");
+  nameEl.className = "user-menu__name";
+  nameEl.textContent = "Memuat...";
+
+  btn.appendChild(avatar);
+  btn.appendChild(nameEl);
+
+  // Dropdown
+  const dropdown = document.createElement("div");
+  dropdown.className = "user-menu__dropdown card shadow-sm";
+  Object.assign(dropdown.style, { display: "none", position: "absolute", right: "0", top: "110%", minWidth: "200px" });
+
+  const ul = document.createElement("ul");
+  ul.className = "list-group list-group-flush";
+
+  const liP = document.createElement("li"); liP.className = "list-group-item";
+  const aP = document.createElement("a");
+  aP.href = profileUrl; aP.dataset.userMenu = "profile"; aP.className = "text-decoration-none d-block"; aP.textContent = "Profile";
+  liP.appendChild(aP);
+
+  const liA = document.createElement("li"); liA.className = "list-group-item";
+  const aA = document.createElement("a");
+  aA.href = aboutUrl; aA.dataset.userMenu = "about"; aA.className = "text-decoration-none d-block"; aA.textContent = "About";
+  liA.appendChild(aA);
+
+  const liL = document.createElement("li"); liL.className = "list-group-item";
+  const btnLogout = document.createElement("button");
+  btnLogout.type = "button"; btnLogout.dataset.userMenu = "logout"; btnLogout.className = "btn btn-link text-danger p-0";
+  btnLogout.textContent = "Logout";
+  liL.appendChild(btnLogout);
+
+  ul.appendChild(liP); ul.appendChild(liA); ul.appendChild(liL);
+  dropdown.appendChild(ul);
+
+  wrap.appendChild(btn);
+  wrap.appendChild(dropdown);
+  root.innerHTML = ""; // bersihkan kontainer, lalu mount
+  root.appendChild(wrap);
+
+  // Toggle
+  const setOpen = (open) => { btn.setAttribute("aria-expanded", String(open)); dropdown.style.display = open ? "block" : "none"; };
   const toggle = () => setOpen(btn.getAttribute("aria-expanded") !== "true");
 
   btn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); toggle(); });
   dropdown.addEventListener("click", (e) => e.stopPropagation());
 
-  // Fallback: kalau ada script lain yang memblok klik <a>, paksa navigate manual
+  // Fallback jika ada preventDefault di tempat lain
   dropdown.addEventListener("click", (e) => {
     const a = e.target.closest("a[href]");
     if (!a) return;
-    setTimeout(() => {
-      if (e.defaultPrevented) window.location.assign(a.getAttribute("href"));
-    }, 0);
+    setTimeout(() => { if (e.defaultPrevented) window.location.assign(a.getAttribute("href")); }, 0);
   }, true);
 
-  // Tutup saat klik di luar / Esc
+  // Tutup di luar / Esc
   const onDocClick = (e) => { if (!root.contains(e.target)) setOpen(false); };
   const onEsc = (e) => { if (e.key === "Escape") setOpen(false); };
   document.addEventListener("click", onDocClick);
   document.addEventListener("keydown", onEsc);
 
-  // Auth & isi nama/avatar
+  // Auth
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = loginUrl; return; }
     try {
@@ -89,23 +103,22 @@ export function mountUserMenu({
       const text = displayName || email || "User";
       nameEl.textContent = showRoleBadge ? `${text} (${role})` : text;
       const initial = (displayName || email || "?").trim().charAt(0).toUpperCase();
-      avatarEl.textContent = initial;
-      avatarEl.title = email || "";
+      avatar.textContent = initial;
+      avatar.title = email || "";
     } catch (e) {
       console.error("[user-menu] load profile fail:", e);
       const email = auth.currentUser?.email || "User";
       nameEl.textContent = email;
-      avatarEl.textContent = email.charAt(0).toUpperCase();
+      avatar.textContent = email.charAt(0).toUpperCase();
     }
   });
 
-  // Logout via JS; Profile/About via href
-  btnLogout?.addEventListener("click", async (e) => {
+  // Logout
+  btnLogout.addEventListener("click", async (e) => {
     e.preventDefault(); e.stopPropagation(); setOpen(false);
     try { await signOut(auth); } finally { window.location.href = loginUrl; }
   });
 
-  // Cleanup (opsional untuk SPA)
   return () => {
     document.removeEventListener("click", onDocClick);
     document.removeEventListener("keydown", onEsc);
