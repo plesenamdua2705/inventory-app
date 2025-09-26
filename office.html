@@ -267,23 +267,18 @@
             </div>
         </div>
     </div>
+
 	<script type="module">
-	  import { guardPage } from '/js/auth-guard.js';
-	  import { mountUserMenu } from '/js/user-menu.js';
-	
-	  guardPage({
-	    allow: ['viewer','contributor','admin'],
-	    loginPage: '/login_main.html',
-	    redirectIfDenied: '/login_main.html'
-	  });
-	
+	  import { mountUserMenu } from "./js/user-menu.js";
 	  mountUserMenu({
-	    rootSelector: '#user-menu-root',
-	    profileUrl: '/profile.html',
-	    aboutUrl: '/about.html',
-	    loginUrl: '/login_main.html'
+	    rootSelector: "#user-menu-root",
+	    profileUrl: "./profile.html", // atau "../profile.html" jika lokasi halaman berbeda
+	    aboutUrl: "./about.html",
+	    loginUrl: "./login_main.html",
+	    showRoleBadge: true
 	  });
 	</script>
+
 
 	// Inisialisasi halaman
   <script type="module">
