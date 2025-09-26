@@ -269,15 +269,15 @@
     </div>
 
 	<script type="module">
-	  import { mountUserMenu } from "./js/user-menu.js";
-	  mountUserMenu({
-	    rootSelector: "#user-menu-root",
-	    profileUrl: "./profile.html", // atau "../profile.html" jika lokasi halaman berbeda
-	    aboutUrl: "./about.html",
-	    loginUrl: "./login_main.html",
-	  });
-	</script>
-
+  import { mountUserMenu } from "./js/user-menu.js?v=fix-20250926-1";
+  mountUserMenu({
+    rootSelector: "#user-menu-root",
+    profileUrl: "./profile.html",
+    aboutUrl: "./about.html",
+    loginUrl: "./login_main.html",
+    showRoleBadge: true
+  });
+</script>
 
 	// Inisialisasi halaman
   <script type="module">
