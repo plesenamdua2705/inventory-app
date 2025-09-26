@@ -1,4 +1,4 @@
-<!-- /js/stock-page.js -->
+// /js/stock-page.js
 <script type="module">
 // Import
 import { auth, db } from "./firebase-init.js";
@@ -187,3 +187,4 @@ export function initStockPage(cfg) {
     }
   });
 }
+
