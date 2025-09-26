@@ -268,13 +268,20 @@
         </div>
     </div>
 	<script type="module">
-	  import { mountUserMenu } from "./js/user-menu.js";
+	  import { guardPage } from '/js/auth-guard.js';
+	  import { mountUserMenu } from '/js/user-menu.js';
+	
+	  guardPage({
+	    allow: ['viewer','contributor','admin'],
+	    loginPage: '/login_main.html',
+	    redirectIfDenied: '/login_main.html'
+	  });
+	
 	  mountUserMenu({
-	    rootSelector: "#user-menu-root",
-	    profileUrl: "./profile.html",
-	    aboutUrl: "./about.html",
-	    loginUrl: "./login_main.html",
-	    showRoleBadge: true
+	    rootSelector: '#user-menu-root',
+	    profileUrl: '/profile.html',
+	    aboutUrl: '/about.html',
+	    loginUrl: '/login_main.html'
 	  });
 	</script>
 
