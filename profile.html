@@ -236,7 +236,15 @@
 	  guardPage({ allow:['viewer','contributor','admin'], loginPage:'/login_main.html', redirectIfDenied:'/login_main.html' });
 	
 	  // Pasang menu user
-	  mountUserMenu({ rootSelector:'#user-menu-root', profileUrl:'/profile.html', aboutUrl:'/about.html', loginUrl:'/login_main.html' });
+	 
+		mountUserMenu({
+		    rootSelector: "#user-menu-root",
+		    profileUrl: "./profile.html",
+		    aboutUrl: "./about.html",
+		    loginUrl: "./login_main.html",
+		    showRoleBadge: true
+		  });
+
 	
 	  // Elemen DOM
 	  const elEmail = document.getElementById('p-email');
