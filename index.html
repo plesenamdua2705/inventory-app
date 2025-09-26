@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -345,49 +343,27 @@
         </div>
     </div>
 	
-	<script type="module" src="/js/firebase-init.js"></script>
-	
-	<script type="module">  
-	 import { guardPage } from "/js/auth-guard.js";
-	  // Semua role boleh membuka halaman (viewer hanya lihat; contributor & admin boleh edit)
-	  guardPage({ allow: ['viewer','contributor','admin'], redirectIfDenied: '/index.html' });
-	</script>
-
-	<!-- Fallback guard + logout (ADD-ONLY, tanpa ubah markup) -->
 	<script type="module">
-	  import { auth } from "/js/firebase-init.js";
-	  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+	  import { guardPage } from './js/auth-guard.js';
+	  import { mountUserMenu } from './js/user-menu.js';
 
-	  // Guard sederhana: redirect ke login jika belum login
-	  onAuthStateChanged(auth, (user) => {
-		if (!user) window.location.href = "/login_main.html";
+	  // Proteksi akses halaman (user harus login)
+	  guardPage({
+		allow: ['viewer','contributor','admin'],
+		loginPage: './login_main.html',
+		redirectIfDenied: './login_main.html'
 	  });
 
-	  // Intersep tautan "Logout" manapun
-	  document.addEventListener("click", (e) => {
-		const a = e.target.closest("a");
-		if (!a) return;
-		if (/logout/i.test(a.textContent)) {
-		  e.preventDefault();
-		  signOut(auth).then(() => (window.location.href = "/login_main.html"))
-					   .catch(err => alert("Gagal logout: " + err.message));
-		}
-	  });
-
-	  // Opsional: tampilkan nama user secara non-invasif (badge kecil)
-	  onAuthStateChanged(auth, (user) => {
-		if (!user) return;
-		const badge = document.createElement("div");
-		badge.textContent = user.displayName || user.email || "User";
-		Object.assign(badge.style, {
-		  position: "fixed", right: "12px", top: "12px",
-		  background:"#111827", color:"#fff", padding:"6px 10px",
-		  borderRadius:"10px", fontFamily:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-		  fontSize:"12px", opacity:".9", zIndex: 9999
-		});
-		document.body.appendChild(badge);
+	  // Pasang user menu pada container kanan-atas
+	  mountUserMenu({
+		rootSelector: '#user-menu-root',
+		profileUrl: './profile.html',
+		aboutUrl: './about.html',
+		loginUrl: './login_main.html',
+		// showRoleBadge: true, // aktifkan jika ingin tampilkan (role)
 	  });
 	</script>
+
 	
 	<!-- Authentication-->
 	<script type="module" src="/js/firebase-init.js"></script>
