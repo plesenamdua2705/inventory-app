@@ -1,32 +1,32 @@
 // /js/auth-guard.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+import { auth, db } from "./firebase-init.js"; // gunakan relative path
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
 /**
- * Panggil guardPage({ allow: ['admin', 'contributor'] })
+ * Contoh:
+ * guardPage({ allow: ['admin', 'contributor'], redirectIfDenied: './index.html', loginPage: './login_main.html' })
+ *
  * Opsi:
- *  - allow: string[] role yang diizinkan
- *  - redirectIfDenied: URL fallback jika role tidak diizinkan
- *  - loginPage: URL halaman login
+ * - allow: string[]   -> role yang diizinkan
+ * - redirectIfDenied  -> URL fallback jika role tidak diizinkan
+ * - loginPage         -> URL halaman login
  */
 export function guardPage(
-  options = { allow: ['viewer', 'contributor', 'admin'], redirectIfDenied: '/index.html', loginPage: '/login_main.html' }
+  options = { allow: ['viewer', 'contributor', 'admin'], redirectIfDenied: './index.html', loginPage: './login_main.html' }
 ) {
   const { allow, redirectIfDenied, loginPage } = options;
-
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.href = loginPage;
       return;
     }
-
     try {
       const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      const data = userSnap.exists() ? userSnap.data() : {};
-      const role = (data && data.role) ?? 'viewer';
-      const disabled = !!data.disabled;
+      const snap = await getDoc(userRef);
+      const data = snap.exists() ? snap.data() : {};
+      const role = data?.role ?? 'viewer';
+      const disabled = !!data?.disabled;
 
       if (disabled) {
         await signOut(auth);
@@ -34,7 +34,6 @@ export function guardPage(
         window.location.href = loginPage;
         return;
       }
-
       if (!allow.includes(role)) {
         alert("Anda tidak memiliki akses ke halaman ini.");
         window.location.href = redirectIfDenied;
@@ -46,4 +45,9 @@ export function guardPage(
   });
 }
 
-
+// (Opsional) cegah user terautentikasi mengakses halaman login
+export function requireAnon(redirectTo = './index.html') {
+  onAuthStateChanged(auth, (user) => {
+    if (user) window.location.href = redirectTo;
+  });
+}
