@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -280,28 +279,30 @@
 
 	// Inisialisasi halaman
   <script type="module">
-    import { initStockPageModal } from "./js/stock-page-modal.js";
-
-    // Field disesuaikan dengan kolom tabel Mas
-    const fields = [
-      { key: "materialNumber", label: "Material Number", type: "text",  required: true },
-      { key: "itemName",        label: "Item Name",       type: "text",  required: true },
-      { key: "dateIn",          label: "Date In",         type: "date",  required: false },
-      { key: "qtyIn",           label: "Qty In",          type: "number",required: false },
-      { key: "dateOut",         label: "Date Out",        type: "date",  required: false },
-      { key: "qtyOut",          label: "Qty Out",         type: "number",required: false }
-    ];
-
-    // Kolom "Total Stock" = Qty In - Qty Out
-    const computeTotals = (d) => Number(d?.qtyIn || 0) - Number(d?.qtyOut || 0);
-
-    initStockPageModal({
-      collectionName: "office",
-      tableSelector: "#table-office",
-      fields,
-      computeTotals,
-      loginUrl: "/login_main.html" // sesuaikan jika path login beda
-    });
+	  import { initStockPageModal } from "./js/stock-page-modal.js";
+	
+	  const fields = [
+	    { key: "materialNumber", label: "Material Number", type: "text",  required: true,  placeholder: "Contoh: 1002345" },
+	    { key: "itemName",       label: "Item Name",       type: "text",  required: true },
+	    { key: "dateIn",         label: "Date In",         type: "date" },
+	    { key: "qtyIn",          label: "Qty In",          type: "number" },
+	    { key: "dateOut",        label: "Date Out",        type: "date" },
+	    { key: "qtyOut",         label: "Qty Out",         type: "number" }
+	  ];
+	  const computeTotals = d => Number(d?.qtyIn || 0) - Number(d?.qtyOut || 0);
+	
+	  initStockPageModal({
+	    collectionName: "office",
+	    tableSelector: "#table-office",
+	    fields,
+	    computeTotals,
+	    loginUrl: "/login_main.html",
+	    ui: {
+	      size: "xl",     // "lg" | "xl" | "full"
+	      columns: 2,     // 1 | 2 | 3
+	      maxWidth: 1200  // px
+	    }
+	  });
   </script>
 	
     <!-- Bootstrap core JavaScript-->
