@@ -203,7 +203,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <table class="table table-bordered" table id="table-office" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
 											<th>Material Number</th>
@@ -268,25 +268,29 @@
         </div>
     </div>
 
-	<!-- Role Guard protection -->
 	<script type="module">
 	  import { guardPage } from '/js/auth-guard.js';
 	  import { mountUserMenu } from '/js/user-menu.js';
+	  import { initStockPage } from '/js/stock-page.js';
 	
-	  guardPage({
-	    allow: ['viewer','contributor','admin'],
-	    loginPage: '/login_main.html',
-	    redirectIfDenied: '/login_main.html'
-	  });
+	  guardPage({ allow:['viewer','contributor','admin'], loginPage:'/login_main.html', redirectIfDenied:'/login_main.html' });
+	  mountUserMenu({ rootSelector:'#user-menu-root', profileUrl:'/profile.html', aboutUrl:'/about.html', loginUrl:'/login_main.html' });
 	
-	  mountUserMenu({
-	    rootSelector: '#user-menu-root',
-	    profileUrl: '/profile.html',
-	    aboutUrl: '/about.html',
-	    loginUrl: '/login_main.html'
+	  // Konfigurasi halaman Office
+	  initStockPage({
+	    collectionName: 'office',
+	    tableSelector: '#table-office',
+	    fields: [
+	      { key:'materialNumber', label:'Material Number', type:'text',   required:true },
+	      { key:'itemName',       label:'Item Name',       type:'text',   required:true },
+	      { key:'dateIn',         label:'Date In',         type:'date' },
+	      { key:'qtyIn',          label:'Qty In',          type:'number' },
+	      { key:'dateOut',        label:'Date Out',        type:'date' },
+	      { key:'qtyOut',         label:'Qty Out',         type:'number' }
+	    ],
+	    computeTotals: (d) => (Number(d.qtyIn || 0) - Number(d.qtyOut || 0))
 	  });
 	</script>
-
 
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
