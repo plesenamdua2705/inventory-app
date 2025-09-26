@@ -132,33 +132,8 @@
 
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
-
-                        <!-- Nav Item - User Information -->
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Vivianti F</span>
-                                <img class="img-profile rounded-circle"
-                                    src="img/undraw_profile_1.svg">
-                            </a>
-                            <!-- Dropdown - User Information -->
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="profile.html">
-                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
-                                </a>
-                                <a class="dropdown-item" href="about.html">
-                                    <i class="fas fa-question fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    About
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
-                            </div>
-                        </li>
+				<!-- Nav Item-Kanan-atas: user info dinamis -->
+					<div id="user-menu-root" class="nav-item dropdown no-arrow"></div>	  
                     </ul>
 
                 </nav>
@@ -297,6 +272,25 @@
         </div>
     </div>
 
+	<!-- Role Guard protection for viewer -->
+	<script type="module">
+	  import { guardPage } from '/js/auth-guard.js';
+	  import { mountUserMenu } from '/js/user-menu.js';
+	
+	  guardPage({
+	    allow: ['viewer','contributor','admin'],
+	    loginPage: '/login_main.html',
+	    redirectIfDenied: '/login_main.html'
+	  });
+	
+	  mountUserMenu({
+	    rootSelector: '#user-menu-root',
+	    profileUrl: '/profile.html',
+	    aboutUrl: '/about.html',
+	    loginUrl: '/login_main.html'
+	  });
+	</script>
+
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -314,28 +308,6 @@
     <!-- Page level custom scripts -->
     <script src="js/demo/datatables-demo.js"></script>
 	
-	<!-- Role protection for viewer -->
-	<script type="module">
-		import { guardPage } from "/js/auth-guard.js";
-		// Semua role boleh membuka halaman (viewer hanya lihat; contributor & admin boleh edit)
-		guardPage({ allow: ['viewer','contributor','admin'], redirectIfDenied: '/index.html' });
-		
-	  import { db, auth } from "/js/firebase-init.js";
-	  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
-	  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-
-	  onAuthStateChanged(auth, async (user) => {
-		if (!user) return;
-		const snap = await getDoc(doc(db, "users", user.uid));
-		const role = snap.exists() ? snap.data().role : 'viewer';
-		if (role === 'viewer') {
-		  // Contoh: nonaktifkan semua tombol yang mengubah data
-		  document.querySelectorAll('[data-action="create"],[data-action="edit"],[data-action="delete"],.btn-save,.btn-add,.btn-delete')
-			.forEach(el => { el.setAttribute('disabled','true'); el.style.opacity = .5; el.style.pointerEvents = 'none'; });
-		}
-	  });
-	</script>
-
 </body>
 
 </html>
