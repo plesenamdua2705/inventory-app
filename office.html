@@ -271,13 +271,12 @@
 	<script type="module">
 	  import { guardPage } from '/js/auth-guard.js';
 	  import { mountUserMenu } from '/js/user-menu.js';
-	  import { initStockPage } from '/js/stock-page.js';
+	  import { initStockPageModal } from '/js/stock-page-modal.js';
 	
 	  guardPage({ allow:['viewer','contributor','admin'], loginPage:'/login_main.html', redirectIfDenied:'/login_main.html' });
 	  mountUserMenu({ rootSelector:'#user-menu-root', profileUrl:'/profile.html', aboutUrl:'/about.html', loginUrl:'/login_main.html' });
 	
-	  // Konfigurasi halaman Office
-	  initStockPage({
+	  initStockPageModal({
 	    collectionName: 'office',
 	    tableSelector: '#table-office',
 	    fields: [
@@ -290,7 +289,7 @@
 	    ],
 	    computeTotals: (d) => (Number(d.qtyIn || 0) - Number(d.qtyOut || 0))
 	  });
-	</script>
+
 
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
