@@ -343,28 +343,24 @@
         </div>
     </div>
 	
-	<script type="module">
-	  import { guardPage } from './js/auth-guard.js';
-	  import { mountUserMenu } from './js/user-menu.js';
+<script type="module">
+  import { guardPage } from './js/auth-guard.js';
+  import { mountUserMenu } from './js/user-menu.js';
 
-	  // Proteksi akses halaman (user harus login)
-	  guardPage({
-		allow: ['viewer','contributor','admin'],
-		loginPage: './login_main.html',
-		redirectIfDenied: './login_main.html'
-	  });
+  guardPage({
+    allow: ['viewer','contributor','admin'],
+    loginPage: './login_main.html',
+    redirectIfDenied: './login_main.html'
+  });
 
-	  // Pasang user menu pada container kanan-atas
-	  mountUserMenu({
-		rootSelector: '#user-menu-root',
-		profileUrl: './profile.html',
-		aboutUrl: './about.html',
-		loginUrl: './login_main.html',
-		// showRoleBadge: true, // aktifkan jika ingin tampilkan (role)
-	  });
-	</script>
+  mountUserMenu({
+    rootSelector: '#user-menu-root',
+    profileUrl: './profile.html',
+    aboutUrl: './about.html',
+    loginUrl: './login_main.html'
+  });
+</script>
 
-	
 	<!-- Authentication-->
 	<script type="module" src="/js/firebase-init.js"></script>
 
