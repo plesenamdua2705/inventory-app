@@ -87,7 +87,17 @@ export function mountUserMenu({
     }
   });
 
-  // Logout
+  // Navigasi Logout
+  linkProfile?.addEventListener("click", async (e) => {
+    e.preventDefault(); e.stopPropagation(); setOpen(false);
+    try { await signOut(auth); } finally { window.location.href = profileUrl; }
+  });
+
+  linkAbout?.addEventListener("click", async (e) => {
+    e.preventDefault(); e.stopPropagation(); setOpen(false);
+    try { await signOut(auth); } finally { window.location.href = aboutUrl; }
+  });
+  
   btnLogout?.addEventListener("click", async (e) => {
     e.preventDefault(); e.stopPropagation(); setOpen(false);
     try { await signOut(auth); } finally { window.location.href = loginUrl; }
@@ -98,3 +108,4 @@ export function mountUserMenu({
     document.removeEventListener("keydown", onEsc);
   };
 }
+
