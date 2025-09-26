@@ -93,10 +93,10 @@ export function mountUserMenu({
     try { await signOut(auth); } finally { window.location.href = profileUrl; }
   });
 
-  linkAbout?.addEventListener("click", async (e) => {
-    e.preventDefault(); e.stopPropagation(); setOpen(false);
-    try { await signOut(auth); } finally { window.location.href = aboutUrl; }
-  });
+  linkAbout?.addEventListener("click", (e) => {
+    e.preventDefault(); e.stopPropagation();
+    setOpen(false);
+    window.location.href = aboutUrl;
   
   btnLogout?.addEventListener("click", async (e) => {
     e.preventDefault(); e.stopPropagation(); setOpen(false);
@@ -108,4 +108,5 @@ export function mountUserMenu({
     document.removeEventListener("keydown", onEsc);
   };
 }
+
 
