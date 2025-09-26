@@ -267,8 +267,18 @@
             </div>
         </div>
     </div>
+	<script type="module">
+	  import { mountUserMenu } from "./js/user-menu.js";
+	  mountUserMenu({
+	    rootSelector: "#user-menu-root",
+	    profileUrl: "./profile.html",
+	    aboutUrl: "./about.html",
+	    loginUrl: "./login_main.html",
+	    showRoleBadge: true
+	  });
+	</script>
 
-	<!-- Inisialisasi halaman -->
+	// Inisialisasi halaman
   <script type="module">
     import { initStockPageModal } from "./js/stock-page-modal.js";
 
