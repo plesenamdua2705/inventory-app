@@ -196,4 +196,3 @@ function buildForm(data = {}) {
     onSnapshot(q, (snap) => renderRows(snap.docs), (err) => console.error("[stock-page-modal] snapshot error:", err));
   });
 }
-
