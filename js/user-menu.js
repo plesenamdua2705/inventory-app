@@ -19,9 +19,9 @@ export function mountUserMenu({
     return () => {};
   }
 
-  // Perhatikan: href langsung mengarah ke file yang benar
+  // Markup dropdown (href langsung ke file, BUKAN '#')
   root.innerHTML = `
-    <div class="user-menu position-relative">
+    <div class="user-menu position-relative" style="z-index:1050;">
       <button class="user-menu__button btn btn-light d-flex align-items-center gap-2"
               type="button" aria-haspopup="true" aria-expanded="false">
         <span class="user-menu__avatar rounded-circle bg-secondary text-white d-inline-flex
@@ -29,14 +29,14 @@ export function mountUserMenu({
         <span class="user-menu__name">Memuat...</span>
       </button>
 
-      <div class="user-menu__dropdown card shadow-sm" style="display:none; position:absolute; right:0; top:110%; min-width:180px; z-index:1050;">
+      <div class="user-menu__dropdown card shadow-sm"
+           style="display:none; position:absolute; right:0; top:110%; min-width:200px;">
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
             ${profileUrl}Profile</a>
           </li>
           <li class="list-group-item">
-            ${aboutUrl}About</a>
-          </li>
+            <a href="${aboutUrl}"          </li>
           <li class="list-group-item">
             <button type="button" data-user-menu="logout" class="btn btn-link text-danger p-0">Logout</button>
           </li>
@@ -45,11 +45,14 @@ export function mountUserMenu({
     </div>
   `;
 
-  const btn = root.querySelector(".user-menu__button");
-  const dropdown = root.querySelector(".user-menu__dropdown");
-  const nameEl = root.querySelector(".user-menu__name");
-  const avatarEl = root.querySelector(".user-menu__avatar");
-  const btnLogout = root.querySelector('[data-user-menu="logout"]');
+  const btn       = root.querySelector(".user-menu__button");
+  const dropdown  = root.querySelector(".user-menu__dropdown");
+  const nameEl    = root.querySelector(".user-menu__name");
+  const avatarEl  = root.querySelector(".user-menu__avatar");
+  // Deklarasi ada (aman), tapi kita tidak perlu event khusus untuk Profile/About
+  const linkProfile = root.querySelector('[data-user-menu="profile"]');
+  const linkAbout   = root.querySelector('[data-user-menu="about"]');
+  const btnLogout   = root.querySelector('[data-user-menu="logout"]');
 
   // Toggle dropdown
   const setOpen = (open) => {
@@ -58,14 +61,27 @@ export function mountUserMenu({
   };
   const toggle = () => setOpen(btn.getAttribute("aria-expanded") !== "true");
 
-  btn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); toggle(); });
+  btn.addEventListener("click", (e) => {
+    e.preventDefault(); e.stopPropagation(); toggle();
+  });
   dropdown.addEventListener("click", (e) => e.stopPropagation());
+
+  // Fallback: kalau ada skrip lain yang memblok klik <a>, paksa navigate
+  dropdown.addEventListener("click", (e) => {
+    const a = e.target.closest("a[href]");
+    if (!a) return;
+    setTimeout(() => {
+      if (e.defaultPrevented) window.location.assign(a.getAttribute("href"));
+    }, 0);
+  }, true);
+
+  // Tutup saat klik di luar / Esc
   const onDocClick = (e) => { if (!root.contains(e.target)) setOpen(false); };
-  const onEsc = (e) => { if (e.key === "Escape") setOpen(false); };
+  const onEsc      = (e) => { if (e.key === "Escape") setOpen(false); };
   document.addEventListener("click", onDocClick);
   document.addEventListener("keydown", onEsc);
 
-  // Muat data user
+  // Auth & isi nama/avatar
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = loginUrl; return; }
     try {
@@ -87,30 +103,15 @@ export function mountUserMenu({
     }
   });
 
-  // Navigasi Logout
-  linkProfile?.addEventListener("click", async (e) => {
-    e.preventDefault(); e.stopPropagation(); setOpen(false);
-    window.location.href = profileUrl;
-  });
-
-  linkAbout?.addEventListener("click", (e) => {
-    e.preventDefault(); e.stopPropagation(); setOpen(false);
-    window.location.href = aboutUrl;
-  });
-  
+  // Logout saja yang ditangani via JS (Profile/About biarkan melalui href)
   btnLogout?.addEventListener("click", async (e) => {
     e.preventDefault(); e.stopPropagation(); setOpen(false);
     try { await signOut(auth); } finally { window.location.href = loginUrl; }
   });
 
+  // Cleanup (opsional untuk SPA)
   return () => {
     document.removeEventListener("click", onDocClick);
     document.removeEventListener("keydown", onEsc);
   };
 }
-
-
-
-
-
-
