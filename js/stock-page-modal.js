@@ -25,15 +25,31 @@ export function initStockPageModal(cfg) {
   // Modal dinamis (tanpa Bootstrap JS)
   const MODAL_ID = `stockModal-${collectionName}`;
   let modalEl = document.getElementById(MODAL_ID);
-  if (!modalEl) {
-    modalEl = document.createElement("div");
-    modalEl.id = MODAL_ID;
-    modalEl.className = "modal fade";
-    modalEl.setAttribute("tabindex", "-1"); modalEl.setAttribute("aria-hidden", "true");
-    modalEl.innerHTML = `
-      <div class="modal-dialog"><div class="modal-content">
+  // Tambahan: baca opsi UI
+const ui = cfg.ui || {};
+const size = ui.size || 'xl';        // 'lg' | 'xl' | 'full'
+const columns = Number(ui.columns || 2);
+const maxWidth = ui.maxWidth || 1200;
+
+// Mapping kelas ukuran (jika Bootstrap CSS tersedia). Kita tetap beri inline width agar aman tanpa Bootstrap.
+const sizeClass =
+  size === 'full' ? 'modal-fullscreen'
+: size === 'xl'   ? 'modal-xl'
+: size === 'lg'   ? 'modal-lg'
+: '';
+
+if (!modalEl) {
+  modalEl = document.createElement("div");
+  modalEl.id = MODAL_ID;
+  modalEl.className = "modal fade";
+  modalEl.setAttribute("tabindex", "-1");
+  modalEl.setAttribute("aria-hidden", "true");
+  modalEl.innerHTML = `
+    <div class="modal-dialog ${sizeClass} modal-dialog-centered modal-dialog-scrollable"
+         style="width:min(95vw, ${maxWidth}px); max-width:${maxWidth}px;">
+      <div class="modal-content">
         <div class="modal-header">
-          <h6 class="modal-title">Add New</h6>
+          <h5 class="modal-title fw-semibold">Add New</h5>
           <button type="button" class="btn-close" aria-label="Close" data-spm="close"></button>
         </div>
         <div class="modal-body">
@@ -44,49 +60,53 @@ export function initStockPageModal(cfg) {
           <button type="button" class="btn btn-light" data-spm="cancel">Cancel</button>
           <button type="button" class="btn btn-primary" data-spm="save">Save</button>
         </div>
-      </div></div>`;
-    document.body.appendChild(modalEl);
-  }
-  const modalTitle = modalEl.querySelector(".modal-title");
-  const formEl = modalEl.querySelector("form");
-  const msgEl  = modalEl.querySelector(`#${MODAL_ID}-msg`);
-  const btnClose  = modalEl.querySelector('[data-spm="close"]');
-  const btnCancel = modalEl.querySelector('[data-spm="cancel"]');
-  const btnSave   = modalEl.querySelector('[data-spm="save"]');
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modalEl);
+}
 
-  let mode = "create", editingId = null;
-  let backdropEl = null;
-  const showModal = () => {
-    modalEl.style.display = "block"; modalEl.classList.add("show"); document.body.classList.add("modal-open");
-    backdropEl = document.createElement("div"); backdropEl.className = "modal-backdrop fade show"; document.body.appendChild(backdropEl);
-    setTimeout(() => modalEl.focus(), 0);
-  };
-  const hideModal = () => {
-    modalEl.classList.remove("show"); modalEl.style.display = "none"; document.body.classList.remove("modal-open");
-    if (backdropEl?.parentNode) backdropEl.parentNode.removeChild(backdropEl); backdropEl = null; msgEl.style.display = "none";
-  };
-  btnClose.addEventListener("click", hideModal);
-  btnCancel.addEventListener("click", hideModal);
-  modalEl.addEventListener("click", (e) => { if (e.target === modalEl) hideModal(); });
-  window.addEventListener("keydown", (e) => { if (e.key === "Escape" && modalEl.classList.contains("show")) hideModal(); });
+// Gaya tambahan agar input nyaman dibaca di semua ukuran
+(function ensureStyle(){
+  const STYLE_ID = `${MODAL_ID}-style`;
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = STYLE_ID;
+  style.textContent = `
+    #${MODAL_ID} .form-label { font-weight:600; }
+    #${MODAL_ID} .form-control { font-size:1rem; padding:.65rem .85rem; }
+    #${MODAL_ID} .row.g-3 { row-gap:1rem; }
+  `;
+  document.head.appendChild(style);
+})();
 
-  function buildForm(data = {}) {
-    formEl.innerHTML = `
-      <div class="row g-3">
-        ${fields.map(f => {
-          const id = `${MODAL_ID}-${f.key}`;
-          const req = f.required ? "required" : "";
-          const type = f.type || "text";
-          const val = data?.[f.key] ?? "";
-          return `
-            <div class="col-md-4">
-              <label for="${id}" class="form-label">${f.label}${f.required ? " *" : ""}</label>
-              <input id="${id}" name="${id}" type="${type}" class="form-control" value="${val}" ${req}>
-            </div>
-          `;
-        }).join("")}
-      </div>`;
-  }
+// === Build form: kolom dinamis ===
+function buildForm(data = {}) {
+  const colClass =
+    columns === 1 ? 'col-12'
+  : columns === 2 ? 'col-12 col-md-6'
+  : /* 3 */        'col-12 col-md-4';
+
+  formEl.innerHTML = `
+    <div class="row g-3">
+      ${fields.map(f => {
+        const id = `${MODAL_ID}-${f.key}`;
+        const req = f.required ? "required" : "";
+        const type = f.type || "text";
+        const val = data?.[f.key] ?? "";
+        const placeholder = f.placeholder ? `placeholder="${f.placeholder}"` : "";
+        const auto = f.autocomplete ? `autocomplete="${f.autocomplete}"` : "autocomplete=off";
+        return `
+          <div class="${colClass}">
+            <label for="${id}" class="form-label">${f.label}${f.required ? " *" : ""}</label>
+            <input id="${id}" name="${id}" type="${type}" class="form-control"
+                   value="${val}" ${req} ${placeholder} ${auto} />
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
   function readFormValues() {
     const out = {};
     for (const f of fields) {
@@ -176,3 +196,4 @@ export function initStockPageModal(cfg) {
     onSnapshot(q, (snap) => renderRows(snap.docs), (err) => console.error("[stock-page-modal] snapshot error:", err));
   });
 }
+
