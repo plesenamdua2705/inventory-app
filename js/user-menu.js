@@ -97,7 +97,7 @@ export function mountUserMenu({
     e.preventDefault(); e.stopPropagation();
     setOpen(false);
     window.location.href = aboutUrl;
-  
+  });
   btnLogout?.addEventListener("click", async (e) => {
     e.preventDefault(); e.stopPropagation(); setOpen(false);
     try { await signOut(auth); } finally { window.location.href = loginUrl; }
@@ -108,5 +108,6 @@ export function mountUserMenu({
     document.removeEventListener("keydown", onEsc);
   };
 }
+
 
 
