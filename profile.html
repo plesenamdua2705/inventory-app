@@ -123,36 +123,9 @@
 					
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
-
-                        <!-- Nav Item - User Information -->
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Vivianti F</span>
-                                <img class="img-profile rounded-circle"
-                                    src="img/undraw_profile_1.svg">
-                            </a>
-                            <!-- Dropdown - User Information -->
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="profile.html">
-                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
-                                </a>
-                                <a class="dropdown-item" href="about.html">
-                                    <i class="fas fa-question fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    About
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
-                            </div>
-                        </li>
-
+					<!-- Nav Item-Kanan-atas: user info dinamis -->
+					<div id="user-menu-root" class="nav-item dropdown no-arrow"></div>
                     </ul>
-
                 </nav>
                 <!-- End of Topbar -->
 
@@ -161,7 +134,45 @@
 
                     <!-- Page Heading -->
                     <h1 class="h3 mb-4 text-gray-800">Profile</h1>
-
+					
+				<!-- Main Conten -->
+					<section id="profile-view">
+					  <h3>Profil Saya</h3>
+					  <p><strong>Email:</strong> <span id="p-email">-</span></p>
+					  <p><strong>Nama tampil:</strong> <span id="p-name">-</span></p>
+					  <p><strong>Role:</strong> <span id="p-role">-</span></p>
+					</section>
+					
+					<section id="profile-edit">
+					  <h4>Ubah Nama Tampil</h4>
+					  <form id="formDisplayName" novalidate>
+					    <label for="displayName">Nama tampil</label>
+					    <input id="displayName" name="displayName" type="text" />
+					    <button type="submit">Simpan</button>
+					  </form>
+					  <div id="msgName" role="status" style="display:none;"></div>
+					</section>
+					
+					<section id="password-change">
+					  <h4>Ganti Password</h4>
+					  <form id="formPassword" novalidate>
+					    <label for="currentPassword">Password saat ini</label>
+					    <input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required />
+					
+					    <label for="newPassword">Password baru</label>
+					    <input id="newPassword" name="newPassword" type="password" autocomplete="new-password" required />
+					
+					    <label for="confirmPassword">Konfirmasi password baru</label>
+					    <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required />
+					
+					    <button type="submit">Ubah Password</button>
+					  </form>
+					  <div id="msgPwd" role="status" style="display:none;"></div>
+					
+					  <!-- (Opsional) Alternatif: kirim email reset -->
+					  <p><button id="btnResetEmail" type="button">Kirim tautan reset ke email saya</button></p>
+					  <div id="msgReset" role="status" style="display:none;"></div>
+					</section>
                 </div>
                 <!-- /.container-fluid -->
 
@@ -210,30 +221,132 @@
     </div>
 	
 	<script type="module">
-	  import { auth } from "/js/firebase-init.js";
-	  import { db } from "/js/firebase-init.js";
-	  import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/{FIREBASE_VERSION}/firebase-auth.js";
-	  import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/{FIREBASE_VERSION}/firebase-firestore.js";
-
+	  import { guardPage } from '/js/auth-guard.js';
+	  import { mountUserMenu } from '/js/user-menu.js';
+	  import { auth, db } from '/js/firebase-init.js';
+	  import {
+	    onAuthStateChanged,
+	    updatePassword,
+	    EmailAuthProvider,
+	    reauthenticateWithCredential,
+	    sendPasswordResetEmail
+	  } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
+	  import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js';
+	
+	  // Proteksi halaman
+	  guardPage({ allow:['viewer','contributor','admin'], loginPage:'/login_main.html', redirectIfDenied:'/login_main.html' });
+	
+	  // Pasang menu user
+	  mountUserMenu({ rootSelector:'#user-menu-root', profileUrl:'/profile.html', aboutUrl:'/about.html', loginUrl:'/login_main.html' });
+	
+	  // Elemen DOM
+	  const elEmail = document.getElementById('p-email');
+	  const elName  = document.getElementById('p-name');
+	  const elRole  = document.getElementById('p-role');
+	
+	  const formName = document.getElementById('formDisplayName');
+	  const msgName  = document.getElementById('msgName');
+	  const formPwd  = document.getElementById('formPassword');
+	  const msgPwd   = document.getElementById('msgPwd');
+	  const btnReset = document.getElementById('btnResetEmail');
+	  const msgReset = document.getElementById('msgReset');
+	
+	  // Tampilkan data profil
 	  onAuthStateChanged(auth, async (user) => {
-		if (!user) { window.location.href = "/login_main.html"; return; }
-
-		const ref = doc(db, "users", user.uid);
-		const snap = await getDoc(ref);
-		if (snap.exists()) {
-		  const data = snap.data();
-		  document.querySelector("#email").value = data.email || user.email || "";
-		  document.querySelector("#displayName").value = data.displayName || user.displayName || "";
-		}
-
-		document.querySelector("#profileForm").addEventListener("submit", async (e) => {
-		  e.preventDefault();
-		  const displayName = document.querySelector("#displayName").value.trim();
-
-		  await updateProfile(user, { displayName });
-		  await updateDoc(ref, { displayName, updatedAt: serverTimestamp() });
-		  alert("Profil diperbarui.");
-		});
+	    if (!user) return;
+	    try {
+	      const snap = await getDoc(doc(db, 'users', user.uid));
+	      const data = snap.exists() ? snap.data() : {};
+	      elEmail.textContent = user.email || data.email || '-';
+	      elName.textContent  = (data.displayName || user.displayName || '').trim() || '-';
+	      elRole.textContent  = data.role || 'viewer';
+	
+	      // Prefill form nama
+	      document.getElementById('displayName').value = (data.displayName || user.displayName || '').trim();
+	    } catch (e) {
+	      console.error('Load profile failed:', e);
+	    }
+	  });
+	
+	  // Ubah displayName (patuh rules: hanya field aman)
+	  formName.addEventListener('submit', async (e) => {
+	    e.preventDefault();
+	    const u = auth.currentUser;
+	    if (!u) return;
+	    msgName.style.display = 'none';
+	    try {
+	      await updateDoc(doc(db, 'users', u.uid), {
+	        displayName: document.getElementById('displayName').value.trim(),
+	        updatedAt: serverTimestamp()
+	      });
+	      elName.textContent = document.getElementById('displayName').value.trim() || '-';
+	      msgName.textContent = 'Nama tampil berhasil diperbarui.';
+	      msgName.style.display = 'block';
+	    } catch (e2) {
+	      console.error(e2);
+	      msgName.textContent = 'Gagal memperbarui nama.';
+	      msgName.style.display = 'block';
+	    }
+	  });
+	
+	  // Ubah password (dengan re-auth)
+	  formPwd.addEventListener('submit', async (e) => {
+	    e.preventDefault();
+	    const u = auth.currentUser;
+	    if (!u) return;
+	
+	    msgPwd.style.display = 'none';
+	
+	    const current = document.getElementById('currentPassword').value;
+	    const next    = document.getElementById('newPassword').value;
+	    const confirm = document.getElementById('confirmPassword').value;
+	
+	    if (!current || !next || !confirm) {
+	      msgPwd.textContent = 'Semua field wajib diisi.'; msgPwd.style.display = 'block'; return;
+	    }
+	    if (next !== confirm) {
+	      msgPwd.textContent = 'Konfirmasi password tidak cocok.'; msgPwd.style.display = 'block'; return;
+	    }
+	    if (next.length < 6) {
+	      msgPwd.textContent = 'Password baru minimal 6 karakter.'; msgPwd.style.display = 'block'; return;
+	    }
+	
+	    try {
+	      const cred = EmailAuthProvider.credential(u.email, current);
+	      await reauthenticateWithCredential(u, cred);  // Wajib jika credential lama kedaluwarsa
+	      await updatePassword(u, next);
+	
+	      msgPwd.textContent = 'Password berhasil diubah. Anda akan diminta login ulang.';
+	      msgPwd.style.display = 'block';
+	
+	      // Demi keamanan, paksa logout setelah ganti password
+	      setTimeout(() => { window.location.href = '/login_main.html'; }, 1200);
+	    } catch (err) {
+	      console.error(err);
+	      const map = {
+	        'auth/wrong-password': 'Password saat ini salah.',
+	        'auth/weak-password':  'Password baru terlalu lemah.',
+	        'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi nanti.',
+	        default: 'Gagal mengubah password.'
+	      };
+	      msgPwd.textContent = map[err?.code] ?? map.default;
+	      msgPwd.style.display = 'block';
+	    }
+	  });
+	
+	  // Alternatif: kirim email reset password
+	  btnReset.addEventListener('click', async () => {
+	    msgReset.style.display = 'none';
+	    const u = auth.currentUser;
+	    if (!u || !u.email) { msgReset.textContent = 'Email tidak tersedia.'; msgReset.style.display = 'block'; return; }
+	    try {
+	      await sendPasswordResetEmail(auth, u.email);
+	      msgReset.textContent = 'Tautan reset telah dikirim ke ' + u.email + '.';
+	      msgReset.style.display = 'block';
+	    } catch (e) {
+	      console.error(e);
+	      msgReset.textContent = 'Gagal mengirim email reset.'; msgReset.style.display = 'block';
+	    }
 	  });
 	</script>
 
