@@ -5,12 +5,6 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase
 
 /**
  * Render & kelola dropdown user (kanan atas).
- * @param {Object} cfg
- * @param {string} [cfg.rootSelector="#user-menu-root"]
- * @param {string} [cfg.profileUrl="./profile.html"]
- * @param {string} [cfg.aboutUrl="./about.html"]
- * @param {string} [cfg.loginUrl="./login_main.html"]
- * @param {boolean}[cfg.showRoleBadge=false]
  */
 export function mountUserMenu({
   rootSelector = "#user-menu-root",
@@ -25,7 +19,7 @@ export function mountUserMenu({
     return () => {};
   }
 
-  // Markup dropdown sederhana (tanpa mengubah CSS Mas)
+  // Perhatikan: href langsung mengarah ke file yang benar
   root.innerHTML = `
     <div class="user-menu position-relative">
       <button class="user-menu__button btn btn-light d-flex align-items-center gap-2"
@@ -35,13 +29,15 @@ export function mountUserMenu({
         <span class="user-menu__name">Memuat...</span>
       </button>
 
-      <div class="user-menu__dropdown card shadow-sm" style="display:none; position:absolute; right:0; top:110%; min-width:180px; z-index:1000;">
+      <div class="user-menu__dropdown card shadow-sm" style="display:none; position:absolute; right:0; top:110%; min-width:180px; z-index:1050;">
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
-            #Profile</a>
+            ${profileUrl}Profile</a>
           </li>
           <li class="list-group-item">
-            <a href="#" data-user-menu="about    <li class="list-group-item">
+            ${aboutUrl}About</a>
+          </li>
+          <li class="list-group-item">
             <button type="button" data-user-menu="logout" class="btn btn-link text-danger p-0">Logout</button>
           </li>
         </ul>
@@ -53,8 +49,6 @@ export function mountUserMenu({
   const dropdown = root.querySelector(".user-menu__dropdown");
   const nameEl = root.querySelector(".user-menu__name");
   const avatarEl = root.querySelector(".user-menu__avatar");
-  const linkProfile = root.querySelector('[data-user-menu="profile"]');
-  const linkAbout = root.querySelector('[data-user-menu="about"]');
   const btnLogout = root.querySelector('[data-user-menu="logout"]');
 
   // Toggle dropdown
@@ -71,7 +65,7 @@ export function mountUserMenu({
   document.addEventListener("click", onDocClick);
   document.addEventListener("keydown", onEsc);
 
-  // Load data user
+  // Muat data user
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = loginUrl; return; }
     try {
@@ -93,15 +87,12 @@ export function mountUserMenu({
     }
   });
 
-  // Navigasi
-  linkProfile?.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); setOpen(false); window.location.href = profileUrl; });
-  linkAbout?.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); setOpen(false); window.location.href = aboutUrl; });
+  // Logout
   btnLogout?.addEventListener("click", async (e) => {
     e.preventDefault(); e.stopPropagation(); setOpen(false);
     try { await signOut(auth); } finally { window.location.href = loginUrl; }
   });
 
-  // Cleanup (opsional, untuk SPA)
   return () => {
     document.removeEventListener("click", onDocClick);
     document.removeEventListener("keydown", onEsc);
