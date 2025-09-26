@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -33,20 +32,23 @@
 				<i class="fas fa-fw fa-sign-in"></i>
                     <span><h2>E-STOCK</h2></span>
 					
-				<form>
+				<form id="loginForm" novalidate>
 				  <div class="form-group">
-					<input type="email" class="form-control form-control-lg" placeholder="Email" required>
+					<input id="email" name="email" type="email" class="form-control form-control-lg" placeholder="Email" autocomplete="username" required>
 				  </div>
 				  <div class="form-group">
-					<input type="password" class="form-control form-control-lg" placeholder="Password" required>
+					<input id="password" name="password" type="password" class="form-control form-control-lg" placeholder="Password" autocomplete="current-password" required>
 				  </div>
+				  
 				  <div class="form-group form-check">
-					<input type="checkbox" class="form-check-input" id="rememberMe" />
-					<label class="form-check-label" for="rememberMe">Remember Me</label>
+					<input id="checkbox" type="checkbox" checked class="form-check-input" id="remember" />
+					<label class="form-check-label" for="remember">Remember Me</label>
 				  </div>
-				  <a href="index.html" class="btn btn-primary btn-lg btn-block">Login</a>
+				  <a href="index.html" class="btn btn-primary btn-lg btn-block" button id= "btnLogin" type="submit">Login</a>
 				  <div class="text-center mt-3">
-					<a href="forgot-password.html">Forgot Password?</a>
+					<a href="forgot-password.html" id="btnForgot">Forgot Password?</a>
+					
+					<div id="errorBox" role="alert" style="display:none;"></div>
 				  </div>
 				</form>
 				
@@ -61,74 +63,82 @@
 		</div>
 	</div>
 	
-	<!-- 1) Inisialisasi Firebase -->
-	<script type="module" src="/js/firebase-init.js"></script>
-	<script type="module" src="/js/firebase-auth.js"></script>
-	
 	<!-- 2) Enhancer Login (ADD-ONLY) -->
-	<script type="module" srcript>
-	<script type="module">
-	  import { auth, ensureUserDoc } from "/js/firebase-init.js";
-	  import {
-	    signInWithEmailAndPassword,
-	    setPersistence,
-	    browserLocalPersistence,
-	    browserSessionPersistence
-	  } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 	
-	  const form = document.getElementById('loginForm');
-	  const emailEl = document.getElementById('email');
-	  const passEl = document.getElementById('password');
-	  const rememberEl = document.getElementById('remember');
-	  const errBox = document.getElementById('errorBox');
 	
-	  function showError(msg) {
-	    if (!errBox) { alert(msg); return; }
-	    errBox.textContent = msg;
-	    errBox.style.display = 'block';
-	  }
-	
-	  const onSubmit = async (e) => {
-	    e.preventDefault();
-	    const email = emailEl.value.trim();
-	    const password = passEl.value;
-	    if (!email || !password) {
-	      showError('Email dan password wajib diisi.');
-	      return;
-	    }
-	    const persistence = (rememberEl && rememberEl.checked)
-	      ? browserLocalPersistence
-	      : browserSessionPersistence;
-	    try {
-	      await setPersistence(auth, persistence);
-	      const { user } = await signInWithEmailAndPassword(auth, email, password);
-	      await ensureUserDoc(user);
-	      window.location.href = 'index.html';
-	    } catch (err) {
-	      const map = {
-	        'auth/invalid-email': 'Format email tidak valid.',
-	        'auth/user-disabled': 'Akun dinonaktifkan.',
-	        'auth/user-not-found': 'Akun tidak ditemukan.',
-	        'auth/wrong-password': 'Password salah.'
-	      };
-	      showError(map[err.code] || 'Gagal login. Silakan coba lagi.');
-	    }
-	  };
-	
-	  if (form) form.addEventListener('submit', onSubmit);
-	  const btn = document.getElementById('btnLogin');
-	  if (btn && !form) btn.addEventListener('click', onSubmit);
-	</script>
-	
-    <!-- Bootstrap core JavaScript-->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script type="module">
+    import { auth, ensureUserDoc } from './js/firebase-init.js';
+    import {
+      signInWithEmailAndPassword,
+      setPersistence,
+      browserLocalPersistence,
+      browserSessionPersistence
+    } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
 
-    <!-- Core plugin JavaScript-->
-    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+    const form = document.getElementById('loginForm');
+    const emailEl = document.getElementById('email');
+    const passEl = document.getElementById('password');
+    const rememberEl = document.getElementById('remember');
+    const btnLogin = document.getElementById('btnLogin');
+    const errorBox = document.getElementById('errorBox');
 
-    <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin-2.min.js"></script>
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.style.display = 'block';
+    }
 
+    function clearError() {
+      errorBox.textContent = '';
+      errorBox.style.display = 'none';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+
+      const email = emailEl.value.trim();
+      const password = passEl.value;
+
+      if (!email || !password) {
+        showError('Email dan password wajib diisi.');
+        return;
+      }
+
+      btnLogin.disabled = true;
+      btnLogin.textContent = 'Memproses...';
+
+      try {
+        // Set persistence sesuai "Remember Me"
+        await setPersistence(
+          auth,
+          rememberEl.checked ? browserLocalPersistence : browserSessionPersistence
+        );
+
+        // Sign in
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+
+        // Pastikan dokumen user tersedia
+        await ensureUserDoc(cred.user);
+
+        // Sukses → arahkan ke dashboard/beranda
+        window.location.href = 'index.html';
+      } catch (err) {
+        console.error(err);
+        // Pesan yang lebih ramah untuk beberapa error umum
+        const msgMap = {
+          'auth/invalid-email': 'Format email tidak valid.',
+          'auth/user-disabled': 'Akun dinonaktifkan.',
+          'auth/user-not-found': 'User tidak ditemukan.',
+          'auth/wrong-password': 'Password salah.',
+          'default': 'Gagal login. Silakan coba lagi.'
+        };
+        const code = err?.code || 'default';
+        showError(msgMap[code] ?? msgMap['default']);
+      } finally {
+        btnLogin.disabled = false;
+        btnLogin.textContent = 'Login';
+      }
+    });
+  </script>
 </body>
 </html>
