@@ -1,4 +1,4 @@
-<!-- /js/stock-page-modal.js -->
+// /js/stock-page-modal.js //
 <script type="module">
 import { auth, db } from "./firebase-init.js";
 import {
@@ -291,3 +291,4 @@ export function initStockPageModal(cfg) {
   });
 }
 </script>
+
