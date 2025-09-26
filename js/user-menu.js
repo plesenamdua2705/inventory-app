@@ -11,7 +11,7 @@ export function mountUserMenu({
   profileUrl = "./profile.html",
   aboutUrl = "./about.html",
   loginUrl = "./login_main.html",
-  showRoleBadge = true,
+  showRoleBadge = false,
 } = {}) {
   const root = document.querySelector(rootSelector);
   if (!root) {
@@ -108,6 +108,7 @@ export function mountUserMenu({
     document.removeEventListener("keydown", onEsc);
   };
 }
+
 
 
 
