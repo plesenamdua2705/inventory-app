@@ -121,7 +121,15 @@ export function initStockPageModal(cfg) {
 
       /* Table controls */
       .table-controls { margin: 0.5rem 0; }
-      .table-controls .form-select-sm { padding: 0.25rem .5rem; }
+      
+      .table-controls select#pageLength {
+        width: auto;
+        min-width: 70px;
+        padding: 0.25rem 1.5rem 0.25rem 0.5rem;
+        background-position: right 0.5rem center;
+        background-size: 0.65rem auto;
+      }
+
       .table-footer { margin-top: 0.5rem; }
 
       /* Pagination (tanpa Bootstrap JS) */
@@ -591,4 +599,5 @@ export function initStockPageModal(cfg) {
     );
   });
 }
+
 
