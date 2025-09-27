@@ -16,9 +16,7 @@
 
     <!-- Custom fonts for this template -->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
@@ -144,15 +142,15 @@
                 <div class="container-fluid">
 
                     <!-- Page Heading -->
-
-                    <!-- DataTables Example -->
+					
+                    <!-- DataTables -->
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
 							<!-- Modal Content popup Form-->
-							<button type="button" class="btn btn-primary mb-1" data-toggle="modal" data-target="#addSouvenirModal">Add New Data</button>
+							<button id="btnAddNew" type="button" class="btn btn-primary mb-1" data-toggle="modal">Add New Data</button>
 							
 							<!-- Download button-->
-							<button type="button" class="btn btn-primary mb-1"><i
+							<button id="btnExportExcel" type="button" class="btn btn-primary mb-1"><i
                                 class="fas fa-download fa-sm text-white"></i></button>
 
 							<div class="modal fade" id="addSouvenirModal" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
@@ -176,12 +174,12 @@
 													<input type="text" class="form-control" required>
 												</div>
 												<div class="form-group">
-													<label>Qty</label>
-													<input type="number" class="form-control" required>
+													<label>Department</label>
+													<input type="text" class="form-control" required>
 												</div>
 												<div class="form-group">
-													<label>Stock For</label>
-													<input type="text" class="form-control">
+													<label>Sub Department</label>
+													<input type="text" class="form-control" required>
 												</div>
 												<div class="form-group">
 													<label>Date In</label>
@@ -193,10 +191,14 @@
 												</div>
 												<div class="form-group">
 													<label>Date Out</label>
-													<input type="Date" class="form-control">
+													<input type="date" class="form-control">
 												</div>
 												<div class="form-group">
 													<label>Qty Out</label>
+													<input type="number" class="form-control">
+												</div>
+												<div class="form-group">
+													<label>PIC Area</label>
 													<input type="number" class="form-control">
 												</div>
 											</div>
@@ -211,17 +213,18 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <table class="table" table-bordered" table id="table-souvenir" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
 											<th>Material Number</th>
                                             <th>Item Name</th>
-                                            <th>Qty</th>
-                                            <th>Stock for</th>
+											<th>Department</th>
+											<th>Sub-Department</th>
                                             <th>Date In</th>
 											<th>Qty In</th>
                                             <th>Date Out</th>
 											<th>Qty Out</th>
+											<th>PIC Area</th>
 											<th>Total Stock</th>
 											<th></th>
                                         </tr>
@@ -258,44 +261,61 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login_main.html">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- Download function -->
+	<!-- Source priority SheetJS: lokal → CDN fallback --> 
+	<script>
+	  window.SHEETJS_URLS = [
+	    "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+	    "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"
+	    // Opsional jsDelivr :
+	    // "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"
+	  ];
+	
+	  // Nonaktifkan log fallback agar Console bersih
+	  window.SHEETJS_DEBUG = false;
+	</script>
 
-	<!-- Role guard protection -->
+
 	<script type="module">
-	  import { guardPage } from '/js/auth-guard.js';
-	  import { mountUserMenu } from '/js/user-menu.js';
-	
-	  guardPage({
-	    allow: ['viewer','contributor','admin'],
-	    loginPage: '/login_main.html',
-	    redirectIfDenied: '/login_main.html'
-	  });
-	
+	  import { mountUserMenu } from "./js/user-menu.js?v=fix-20250926-1";
 	  mountUserMenu({
-	    rootSelector: '#user-menu-root',
-	    profileUrl: '/profile.html',
-	    aboutUrl: '/about.html',
-	    loginUrl: '/login_main.html'
+	    rootSelector: "#user-menu-root",
+	    profileUrl: "./profile.html",
+	    aboutUrl: "./about.html",
+	    loginUrl: "./login_main.html",
 	  });
 	</script>
+
+	// Inisialisasi halaman
+	  <script type="module">
+		  import { initStockPageModal } from "./js/stock-page-modal.js";
+		
+		  const fields = [
+			{ key: "materialNumber", label: "Material Number", type: "text",  required: true, placeholder: "E.g: 1002345" },
+			{ key: "itemName",       label: "Item Name",       type: "text",  required: true },
+			{ key: "department",     label: "Department",      type: "text",  required: true, placeholder: "E.g: Process Plant" },
+			{ key: "subDepartment",  label: "Sub-Department",  type: "text",  required: true, placeholder: "E.g: Furnance Maintenance" },
+			{ key: "dateIn",         label: "Date In",         type: "date"   required: true },
+			{ key: "qtyIn",          label: "Qty In",          type: "number" },
+			{ key: "dateOut",        label: "Date Out",        type: "date" },
+			{ key: "qtyOut",         label: "Qty Out",         type: "number" }
+			{ key: "picArea",        label: "PIC Area",        type: "text",  required: true },
+		  ];
+		  const computeTotals = d => Number(d?.qtyIn || 0) - Number(d?.qtyOut || 0);
+		
+		  initStockPageModal({
+			collectionName: "souvenir",
+			tableSelector: "#table-souvenir",
+			fields,
+			computeTotals,
+			loginUrl: "/login_main.html",
+			ui: {
+			  size: "xl",     // "lg" | "xl" | "full"
+			  columns: 1,     // 1 | 2 | 3
+			  maxWidth: 1200  // px
+			}
+		  });
+	  </script>
 
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
@@ -315,5 +335,4 @@
     <script src="js/demo/datatables-demo.js"></script>
 	
 </body>
-
 </html>
