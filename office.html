@@ -268,7 +268,15 @@
     </div>
 
 	<!-- Download function -->
-	<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"></script>
+	<script>
+	  // Urutan fallback: lokal → jsDelivr → cdnjs → unpkg
+	  window.SHEETJS_URLS = [
+	    "/libs/xlsx/xlsx.full.min.js",
+	    "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js",
+	    "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+	    "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"
+	  ];
+	</script>
 
 	<script type="module">
 	  import { mountUserMenu } from "./js/user-menu.js?v=fix-20250926-1";
