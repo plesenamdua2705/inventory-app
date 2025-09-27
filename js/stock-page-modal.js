@@ -21,47 +21,39 @@ export function initStockPageModal(cfg) {
     return;
   }
 
-  // ---------- Referensi DOM tabel & kontrol ----------
   const table = document.querySelector(tableSelector);
   if (!table) {
     console.warn("[stock-page-modal] tabel tidak ditemukan:", tableSelector);
     return;
   }
+
   let tbody = table.querySelector("tbody");
   if (!tbody) {
     tbody = document.createElement("tbody");
     table.appendChild(tbody);
   }
 
-  const btnAdd      = document.getElementById("btnAddNew");
-  const btnExport   = document.getElementById("btnExportExcel");
-  const entriesSel  = document.getElementById("entriesSelect");
-  const searchInput = document.getElementById("searchMaterial");
-  const pagerEl     = document.getElementById("pager");
-  const infoEl      = document.getElementById("infoText");
-
+  const btnAdd    = document.getElementById("btnAddNew");
+  const btnExport = document.getElementById("btnExportExcel");
   if (!btnAdd)    console.warn("[stock-page-modal] Tombol #btnAddNew tidak ditemukan.");
   if (!btnExport) console.warn("[stock-page-modal] Tombol #btnExportExcel tidak ditemukan.");
-  if (!entriesSel)console.warn("[stock-page-modal] #entriesSelect tidak ditemukan.");
-  if (!searchInput)console.warn("[stock-page-modal] #searchMaterial tidak ditemukan.");
-  if (!pagerEl)   console.warn("[stock-page-modal] #pager tidak ditemukan.");
-  if (!infoEl)    console.warn("[stock-page-modal] #infoText tidak ditemukan.");
 
-  // ---------- Role & izin ----------
+  // --- Role & izin ---
   let role = "viewer";
   const canWrite = () => role === "admin" || role === "contributor";
 
-  // ---------- UI Modal ----------
-  const size     = ui.size || "xl";          // 'lg' | 'xl' | 'full'
-  const columns  = Number(ui.columns || 2);  // 1 | 2 | 3
+  // --- Opsi UI ---
+  const size    = ui.size || "xl";            // 'lg' | 'xl' | 'full'
+  const columns = Number(ui.columns || 2);    // 1 | 2 | 3
   const maxWidth = ui.maxWidth ?? 1200;
 
   const MODAL_ID = `stockModal-${collectionName}`;
   let modalEl = document.getElementById(MODAL_ID);
+
   const sizeClass =
     size === "full" ? "modal-fullscreen" :
-    size === "xl"   ? "modal-xl" :
-    size === "lg"   ? "modal-lg" : "";
+    size === "xl"   ? "modal-xl"         :
+    size === "lg"   ? "modal-lg"         : "";
 
   if (!modalEl) {
     modalEl = document.createElement("div");
@@ -69,6 +61,8 @@ export function initStockPageModal(cfg) {
     modalEl.className = "modal fade";
     modalEl.setAttribute("tabindex", "-1");
     modalEl.setAttribute("aria-hidden", "true");
+
+    // >>> MODAL MARKUP LENGKAP <<<
     modalEl.innerHTML = `
       <div class="modal-dialog ${sizeClass}" style="max-width:${size === "full" ? "100%" : (maxWidth + "px")}">
         <div class="modal-content">
@@ -92,7 +86,7 @@ export function initStockPageModal(cfg) {
     document.body.appendChild(modalEl);
   }
 
-  // ---------- Style tambahan ----------
+  // --- Style tambahan (termasuk jarak tombol aksi & tombol icon) ---
   (function ensureStyle(){
     const STYLE_ID = `${MODAL_ID}-style`;
     if (document.getElementById(STYLE_ID)) return;
@@ -103,19 +97,23 @@ export function initStockPageModal(cfg) {
       #${MODAL_ID} .form-control { font-size: 1rem; padding: .65rem .85rem; }
       #${MODAL_ID} .row.g-3 { row-gap: 1rem; }
 
+      /* Modal barebone */
       .modal.show { display: block; }
       body.modal-open { overflow: hidden; }
       .modal-backdrop.custom { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1040; }
       #${MODAL_ID}.modal { z-index: 1050; }
 
+      /* Spasi tombol aksi di tabel */
       td .action-buttons { display: inline-flex; align-items: center; gap: .75rem; }
+
+      /* Gaya tombol icon di header (Export) */
       .btn-icon { display: inline-flex; align-items: center; gap: .5rem; }
       .btn-icon svg { flex: 0 0 auto; }
     `;
-   document.head.appendChild(style);
+    document.head.appendChild(style);
   })();
 
-  // ---------- Referensi modal ----------
+  // --- Referensi elemen modal ---
   const modalTitle = modalEl.querySelector(".modal-title");
   const fieldsWrap = modalEl.querySelector(`#${MODAL_ID}-fields`);
   const msgEl      = modalEl.querySelector(`#${MODAL_ID}-msg`);
@@ -123,22 +121,11 @@ export function initStockPageModal(cfg) {
   const btnCancel  = modalEl.querySelector('[data-role="cancel"]');
   const btnCloseX  = modalEl.querySelector('.btn-close');
 
-  // ---------- State ----------
-  let mode = "create";   // 'create' | 'edit'
+  // --- State modal ---
+  let mode = "create";   // "create" | "edit"
   let editingId = null;
 
-  // State tabel (filter + pagination)
-  const state = {
-    page: 1,
-    pageSize: entriesSel ? parseInt(entriesSel.value, 10) : 10, // -1 artinya Semua
-    search: "" // berdasarkan materialNumber
-  };
-
-  // Data cache
-  let latestDocs = [];               // Firestore snapshot docs
-  let allDocs = [];                  // Array of { id, data }
-
-  // ---------- Modal controller ----------
+  // --- Modal controller (tanpa Bootstrap JS) ---
   let backdropEl = null;
   function createBackdrop() {
     backdropEl = document.createElement("div");
@@ -169,11 +156,12 @@ export function initStockPageModal(cfg) {
     if (e.key === "Escape" && modalEl.classList.contains("show")) hideModal();
   });
 
-  // ---------- Form builder ----------
+  // === Build form (dinamis, sesuai jumlah kolom) ===
   function buildForm(data = {}) {
     const colClass =
       columns === 1 ? "col-12" :
       columns === 2 ? "col-12 col-md-6" : "col-12 col-md-4";
+
     fieldsWrap.innerHTML = `
       ${fields.map(f => {
         const id = `${MODAL_ID}-${f.key}`;
@@ -225,94 +213,16 @@ export function initStockPageModal(cfg) {
     await deleteDoc(doc(db, collectionName, id));
   }
 
-  // ---------- FILTER + PAGINATION ----------
-  function getFilteredRows() {
-    const term = (state.search || "").trim().toLowerCase();
-    if (!term) return allDocs;
-    return allDocs.filter(({ data }) => {
-      const val = (data?.materialNumber ?? "").toString().toLowerCase();
-      return val.includes(term);
-    });
-  }
+  // Cache snapshot untuk export
+  let latestDocs = [];
 
-  function renderInfo(total, startIdx, endIdx) {
-    if (!infoEl) return;
-    const s = total === 0 ? 0 : (startIdx + 1);
-    const e = total === 0 ? 0 : endIdx;
-    infoEl.textContent = `Menampilkan ${s} sampai ${e} dari ${total} entri`;
-  }
-
-  function renderPager(total, pageSize) {
-    if (!pagerEl) return;
-    pagerEl.innerHTML = "";
-    const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(total / pageSize));
-    if (state.page > totalPages) state.page = totalPages;
-
-    // Helper buat item
-    const addItem = (label, page, disabled = false, active = false) => {
-      const li = document.createElement("li");
-      li.className = `page-item${disabled ? " disabled" : ""}${active ? " active" : ""}`;
-      const a = document.createElement("a");
-      a.className = "page-link";
-      a.href = "#";
-      a.textContent = label;
-      if (!disabled && !active) {
-        a.addEventListener("click", (e) => {
-          e.preventDefault();
-          state.page = page;
-          drawTable(); // rerender
-        });
-      }
-      li.appendChild(a);
-      pagerEl.appendChild(li);
-    };
-
-    // Prev
-    addItem("«", Math.max(1, state.page - 1), state.page === 1);
-
-    // Numbered pages (ringkas dgn elipsis)
-    const maxButtons = 7;
-    if (totalPages <= maxButtons) {
-      for (let p = 1; p <= totalPages; p++) addItem(String(p), p, false, p === state.page);
-    } else {
-      const addEllipsis = () => {
-        const li = document.createElement("li");
-        li.className = "page-item disabled";
-        li.innerHTML = `<span class="page-link">…</span>`;
-        pagerEl.appendChild(li);
-      };
-      const pages = new Set([1, 2, totalPages, totalPages - 1, state.page, state.page - 1, state.page + 1]);
-      const list = [...pages].filter(p => p >= 1 && p <= totalPages).sort((a, b) => a - b);
-      let prev = 0;
-      for (const p of list) {
-        if (p - prev > 1) addEllipsis();
-        addItem(String(p), p, false, p === state.page);
-        prev = p;
-      }
-    }
-
-    // Next
-    addItem("»", Math.min(totalPages, state.page + 1), state.page === totalPages);
-  }
-
-  function drawTable() {
-    const pageSize = state.pageSize;
-    const filtered = getFilteredRows();
-    const total = filtered.length;
-
-    // Hitung slice
-    let start = 0, end = total;
-    if (pageSize !== -1) {
-      const totalPages = Math.max(1, Math.ceil(total / pageSize));
-      if (state.page > totalPages) state.page = totalPages;
-      start = (state.page - 1) * pageSize;
-      end = Math.min(total, start + pageSize);
-    }
-
-    // Render body
+  function renderRows(snapshotDocs) {
+    latestDocs = snapshotDocs;
     tbody.innerHTML = "";
-    const slice = filtered.slice(start, end);
-    for (const { id, data } of slice) {
+    const can = canWrite();
+
+    for (const d of snapshotDocs) {
+      const data = d.data();
       const tr = document.createElement("tr");
 
       for (const f of fields) {
@@ -329,14 +239,14 @@ export function initStockPageModal(cfg) {
       }
 
       const tdA = document.createElement("td");
-      if (canWrite()) {
+      if (can) {
         const btnE = document.createElement("button");
         btnE.type = "button";
         btnE.className = "btn btn-sm btn-outline-secondary";
         btnE.textContent = "Edit";
         btnE.addEventListener("click", (e) => {
           e.preventDefault(); e.stopPropagation();
-          openEdit(id, data);
+          openEdit(d.id, data);
         });
 
         const btnD = document.createElement("button");
@@ -346,33 +256,22 @@ export function initStockPageModal(cfg) {
         btnD.addEventListener("click", async (e) => {
           e.preventDefault(); e.stopPropagation();
           if (!confirm("Hapus data ini?")) return;
-          try { await deleteDocById(id); }
+          try { await deleteDocById(d.id); }
           catch (err) { console.error(err); alert("Gagal menghapus."); }
         });
 
+        // Spasi tombol aksi
         const actionsWrap = document.createElement("div");
         actionsWrap.className = "action-buttons";
         actionsWrap.append(btnE, btnD);
         tdA.appendChild(actionsWrap);
       }
+
       tr.appendChild(tdA);
       tbody.appendChild(tr);
     }
-
-    renderInfo(total, start, end);
-    renderPager(total, pageSize);
   }
 
-  // dipanggil saat snapshot datang
-  function renderRows(snapshotDocs) {
-    latestDocs = snapshotDocs;
-    allDocs = snapshotDocs.map(d => ({ id: d.id, data: d.data() }));
-    // reset ke halaman 1 bila data berubah drastis
-    if (state.page > 1 && (state.page - 1) * state.pageSize >= allDocs.length) state.page = 1;
-    drawTable();
-  }
-
-  // ---------- Modal open ----------
   function openCreate() {
     mode = "create"; editingId = null;
     modalTitle.textContent = "Add New";
@@ -380,6 +279,7 @@ export function initStockPageModal(cfg) {
     msgEl.classList.add("d-none");
     showModal();
   }
+
   function openEdit(id, data) {
     mode = "edit"; editingId = id;
     modalTitle.textContent = "Edit Data";
@@ -388,13 +288,15 @@ export function initStockPageModal(cfg) {
     showModal();
   }
 
-  // ---------- Events ----------
+  // Event tombol Add
   if (btnAdd) {
     btnAdd.addEventListener("click", (e) => {
       e.preventDefault();
       if (canWrite()) openCreate();
     });
   }
+
+  // Save
   btnSave?.addEventListener("click", async () => {
     msgEl.classList.add("d-none");
     try {
@@ -408,75 +310,50 @@ export function initStockPageModal(cfg) {
     }
   });
 
-  // Kontrol: Show entries
-  entriesSel?.addEventListener("change", () => {
-    state.pageSize = parseInt(entriesSel.value, 10);
-    state.page = 1;
-    drawTable();
-  });
-
-  // Kontrol: Search (by material number)
-  let searchTimer = null;
-  searchInput?.addEventListener("input", () => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-      state.search = searchInput.value || "";
-      state.page = 1;
-      drawTable();
-    }, 150); // debounce ringan
-  });
-
   // ====== EXPORT EXCEL ======
   function loadScript(src) {
     return new Promise((resolve, reject) => {
       const s = document.createElement("script");
       s.src = src;
-      s.async = true; // jangan type="module"
+      s.async = true; // jangan 'module'
       s.onload = () => resolve();
       s.onerror = () => reject(new Error("Gagal memuat: " + src));
       document.head.appendChild(s);
     });
   }
-  function isSameOrigin(url) {
-    try { return new URL(url, location.href).origin === location.origin; }
-    catch { return false; }
-  }
-  async function okSameOrigin(url) {
-    try { const resp = await fetch(url, { method: "HEAD", cache: "no-store" }); return resp.ok; }
-    catch { return false; }
-  }
+
   function ensureSheetJS() {
     return new Promise(async (resolve, reject) => {
-      if (window.XLSX) return resolve();
+      if (window.XLSX) return resolve(); // sudah ada
+
       const urls = (window.SHEETJS_URLS && Array.isArray(window.SHEETJS_URLS))
         ? window.SHEETJS_URLS
         : [
+            "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js",
             "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
-            "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js",
-            "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"
+            "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"
           ];
-      const DEBUG = !!window.SHEETJS_DEBUG;
+
       let lastErr;
       for (const url of urls) {
         try {
-          if (isSameOrigin(url) && !(await okSameOrigin(url))) {
-            if (DEBUG) console.warn("[SheetJS] lewati (tidak ditemukan):", url);
-            continue;
-          }
           await loadScript(url);
           if (window.XLSX) return resolve();
         } catch (e) {
           lastErr = e;
-          if (DEBUG) console.warn("[SheetJS] gagal memuat dari:", url);
+          console.warn("[SheetJS] gagal memuat dari:", url);
         }
       }
       reject(lastErr || new Error("Tidak bisa memuat SheetJS dari semua sumber."));
     });
   }
+
   function toLocalDatetimeStamp() {
-    const d = new Date(); const pad = (n) => String(n).padStart(2, "0");
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
   }
+
   function docsToRows(docs) {
     const includeTotals = typeof computeTotals === "function";
     const rows = [];
@@ -494,21 +371,27 @@ export function initStockPageModal(cfg) {
     }
     return rows;
   }
+
   async function exportToExcel() {
     try {
-      // Default: export SEMUA data (bukan hanya yang terfilter/terlihat)
-      if (!latestDocs.length) { alert("Data belum tersedia untuk diexport."); return; }
+      if (!latestDocs.length) {
+        alert("Data belum tersedia untuk diexport.");
+        return;
+      }
       await ensureSheetJS();
       const rows = docsToRows(latestDocs);
       const ws = XLSX.utils.json_to_sheet(rows, { cellDates: false });
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Data");
-      XLSX.writeFile(wb, `${collectionName}_${toLocalDatetimeStamp()}.xlsx`);
+      const filename = `${collectionName}_${toLocalDatetimeStamp()}.xlsx`;
+      XLSX.writeFile(wb, filename);
     } catch (err) {
       console.error(err);
       alert("Export gagal. Coba refresh atau cek koneksi/CDN.");
     }
   }
+
+  // Event tombol Export
   if (btnExport) {
     btnExport.addEventListener("click", (e) => {
       e.preventDefault();
@@ -517,13 +400,16 @@ export function initStockPageModal(cfg) {
   }
   // ====== END EXPORT EXCEL ======
 
-  // ---------- Auth & realtime ----------
+  // ---- Auth & realtime ----
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = loginUrl; return; }
+
     try {
       const usSnap = await getDoc(doc(db, "users", user.uid));
       role = usSnap.exists() ? (usSnap.data()?.role ?? "viewer") : "viewer";
-    } catch { role = "viewer"; }
+    } catch {
+      role = "viewer";
+    }
 
     if (btnAdd) btnAdd.style.display = canWrite() ? "" : "none";
 
@@ -534,19 +420,4 @@ export function initStockPageModal(cfg) {
       (err) => console.error("[stock-page-modal] snapshot error:", err)
     );
   });
-
-  // ---------- Aksi modal ----------
-  function openCreate() {
-    mode = "create"; editingId = null;
-    modalTitle.textContent = "Add New";
-    buildForm({});
-    msgEl.classList.add("d-none");
-    showModal();
-  }
-  function openEdit(id, data) {
-    mode = "edit"; editingId = id;
-    modalTitle.textContent = "Edit Data";
-    buildForm(data);
-    msgEl.classList.add("d-none");
-    showModal();
-  }
+}
