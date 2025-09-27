@@ -130,6 +130,11 @@ export function initStockPageModal(cfg) {
         background-size: 0.65rem auto;
       }
 
+      .table-controls label {
+        margin-bottom: 0;
+        margin-right: 0.25rem;
+      }
+
       .table-footer { margin-top: 0.5rem; }
 
       /* Pagination (tanpa Bootstrap JS) */
@@ -599,5 +604,6 @@ export function initStockPageModal(cfg) {
     );
   });
 }
+
 
 
