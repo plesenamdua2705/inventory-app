@@ -44,7 +44,7 @@ export function initStockPageModal(cfg) {
 
   // --- Opsi UI ---
   const size    = ui.size || "xl";            // 'lg' | 'xl' | 'full'
-  const columns = Number(ui.columns || 2);    // 1 | 2 | 3
+  const columns = Number(ui.columns || 1);    // 1 | 2 | 3
   const maxWidth = ui.maxWidth ?? 1200;
 
   const MODAL_ID = `stockModal-${collectionName}`;
@@ -106,6 +106,23 @@ export function initStockPageModal(cfg) {
       .btn-icon { display: inline-flex; align-items: center; gap: .5rem; }
       .btn-icon svg { flex: 0 0 auto; }
     `;
+    
+      /* Kontrol tabel (show entries + search) */
+      .table-controls { margin: .5rem 0; }
+      .table-controls .form-select-sm { padding: .25rem .5rem; }
+      .table-footer { margin-top: .5rem; }
+      
+      /* Pagination (tanpa Bootstrap JS) */
+      .pagination { display:flex; gap:.25rem; list-style:none; padding:0; margin:0; }
+      .page-item {}
+      .page-link {
+        border:1px solid #dee2e6; padding:.25rem .5rem; cursor:pointer;
+        border-radius:.25rem; color:inherit; background:#fff; text-decoration:none; display:block;
+        }
+      .page-item.active .page-link { background:#0d6efd; color:#fff; border-color:#0d6efd; }
+      .page-item.disabled .page-link { opacity:.5; pointer-events:none; }
+      `;
+
     document.head.appendChild(style);
   })();
 
@@ -272,6 +289,50 @@ export function initStockPageModal(cfg) {
         tdA.appendChild(actionsWrap);
       }
 
+      // ---- KONTROL TABEL: SHOW ENTRIES + SEARCH + INFO + PAGER ----
+        const controls = ui.controls || {};
+        let searchInput = document.querySelector(controls.searchSelector || '#tableSearch');
+        let lengthSelect = document.querySelector(controls.lengthSelector || '#pageLength');
+        let infoEl = document.querySelector(controls.infoSelector || '#tableInfo');
+        let pagerEl = document.querySelector(controls.pagerSelector || '#tablePager');
+        
+        // Jika elemen belum ada di HTML, buat otomatis & sisipkan
+        if (!searchInput || !lengthSelect || !infoEl || !pagerEl) {
+          const controlsWrap = document.createElement('div');
+          controlsWrap.className = 'table-controls d-flex align-items-center justify-content-between flex-wrap gap-2';
+          controlsWrap.innerHTML = `
+            <div class="d-flex align-items-center gap-2">
+              <label class="mb-0 small">Show</label>
+              <select id="pageLength" class="form-select form-select-sm" style="width:auto">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="-1">All</option>
+              </select>
+              <span class="small">entries</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 ms-auto">
+              <label for="tableSearch" class="mb-0 small">Search:</label>
+              <input id="tableSearch" type="search" class="form-control form-control-sm" placeholder="Type to search..." />
+            </div>
+          `;
+          table.parentNode.insertBefore(controlsWrap, table);
+        
+          const footerWrap = document.createElement('div');
+          footerWrap.className = 'table-footer d-flex align-items-center justify-content-between flex-wrap gap-2';
+          footerWrap.innerHTML = `
+            <div id="tableInfo" class="small text-muted"></div>
+            <ul id="tablePager" class="pagination pagination-sm mb-0"></ul>
+          `;
+          table.parentNode.insertBefore(footerWrap, table.nextSibling);
+        
+          searchInput = controlsWrap.querySelector('#tableSearch');
+          lengthSelect = controlsWrap.querySelector('#pageLength');
+          infoEl = footerWrap.querySelector('#tableInfo');
+          pagerEl = footerWrap.querySelector('#tablePager');
+        }
+
       tr.appendChild(tdA);
       tbody.appendChild(tr);
     }
@@ -430,4 +491,5 @@ export function initStockPageModal(cfg) {
     );
   });
 }
+
 
