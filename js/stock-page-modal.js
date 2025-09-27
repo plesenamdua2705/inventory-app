@@ -311,93 +311,75 @@ export function initStockPageModal(cfg) {
   });
 
   // ====== EXPORT EXCEL ======
-  function loadScript(src) {
-    return new Promise((resolve, reject) => {
-      const s = document.createElement("script");
-      s.src = src;
-      s.async = true; // jangan 'module'
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error("Gagal memuat: " + src));
-      document.head.appendChild(s);
-    });
+  // Helper umum
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = true;                 // jangan type="module"
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Gagal memuat: " + src));
+    document.head.appendChild(s);
+  });
+}
+
+function isSameOrigin(url) {
+  try {
+    const u = new URL(url, location.href);
+    return u.origin === location.origin;
+  } catch {
+    return false;
   }
+}
 
-  function ensureSheetJS() {
-    return new Promise(async (resolve, reject) => {
-      if (window.XLSX) return resolve(); // sudah ada
+// NEW: preflight HEAD untuk sumber same-origin (menghindari 404 di Console)
+async function okSameOrigin(url) {
+  try {
+    const resp = await fetch(url, { method: "HEAD", cache: "no-store" });
+    return resp.ok;
+  } catch {
+    return false;
+  }
+}
 
-      const urls = (window.SHEETJS_URLS && Array.isArray(window.SHEETJS_URLS))
-        ? window.SHEETJS_URLS
-        : [
-            "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js",
-            "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
-            "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"
-          ];
+function ensureSheetJS() {
+  return new Promise(async (resolve, reject) => {
+    if (window.XLSX) return resolve(); // sudah tersedia
 
-      let lastErr;
-      for (const url of urls) {
-        try {
-          await loadScript(url);
-          if (window.XLSX) return resolve();
-        } catch (e) {
-          lastErr = e;
-          console.warn("[SheetJS] gagal memuat dari:", url);
+    const urls = (window.SHEETJS_URLS && Array.isArray(window.SHEETJS_URLS))
+      ? window.SHEETJS_URLS
+      : [
+          "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+          "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js",
+          "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"
+        ];
+
+    const DEBUG = !!window.SHEETJS_DEBUG;
+    let lastErr;
+
+    for (const url of urls) {
+      try {
+        // Jika same-origin (lokal), preflight dulu agar tidak memicu 404 di Console
+        if (isSameOrigin(url)) {
+          const ok = await okSameOrigin(url);
+          if (!ok) {
+            if (DEBUG) console.warn("[SheetJS] lewati (tidak ditemukan):", url);
+            continue; // jangan inject <script>, hindari 404 log
+          }
         }
-      }
-      reject(lastErr || new Error("Tidak bisa memuat SheetJS dari semua sumber."));
-    });
-  }
 
-  function toLocalDatetimeStamp() {
-    const d = new Date();
-    const pad = (n) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
-  }
-
-  function docsToRows(docs) {
-    const includeTotals = typeof computeTotals === "function";
-    const rows = [];
-    for (const snap of docs) {
-      const data = snap.data() || {};
-      const row = {};
-      for (const f of fields) {
-        const val = data?.[f.key];
-        row[f.label || f.key] = (f.type === "number") ? Number(val || 0) : (val ?? "");
+        await loadScript(url);
+        if (window.XLSX) return resolve();
+      } catch (e) {
+        lastErr = e;
+        if (DEBUG) console.warn("[SheetJS] gagal memuat dari:", url);
+        // lanjut ke sumber berikutnya
       }
-      if (includeTotals) row["Total"] = computeTotals(data);
-      if (data.createdAt?.toDate) row["Created At"] = data.createdAt.toDate().toISOString();
-      if (data.updatedAt?.toDate) row["Updated At"] = data.updatedAt.toDate().toISOString();
-      rows.push(row);
     }
-    return rows;
-  }
-
-  async function exportToExcel() {
-    try {
-      if (!latestDocs.length) {
-        alert("Data belum tersedia untuk diexport.");
-        return;
-      }
-      await ensureSheetJS();
-      const rows = docsToRows(latestDocs);
-      const ws = XLSX.utils.json_to_sheet(rows, { cellDates: false });
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Data");
-      const filename = `${collectionName}_${toLocalDatetimeStamp()}.xlsx`;
-      XLSX.writeFile(wb, filename);
-    } catch (err) {
-      console.error(err);
-      alert("Export gagal. Coba refresh atau cek koneksi/CDN.");
-    }
-  }
-
-  // Event tombol Export
-  if (btnExport) {
-    btnExport.addEventListener("click", (e) => {
-      e.preventDefault();
-      exportToExcel();
-    });
-  }
+    // Hanya error kalau semua sumber gagal
+    reject(lastErr || new Error("Tidak bisa memuat SheetJS dari semua sumber."));
+  });
+}
   // ====== END EXPORT EXCEL ======
 
   // ---- Auth & realtime ----
@@ -421,3 +403,4 @@ export function initStockPageModal(cfg) {
     );
   });
 }
+
