@@ -61,24 +61,20 @@ export function initStockPageModal(cfg) {
     modalEl.className = "modal fade";
     modalEl.setAttribute("tabindex", "-1");
     modalEl.setAttribute("aria-hidden", "true");
-
-    // >>> MODAL MARKUP LENGKAP <<<
     modalEl.innerHTML = `
-      <div class="modal-dialog ${sizeClass}" style="max-width:${size === "full" ? "100%" : (maxWidth + "px")}">
+      <div class="modal-dialog ${sizeClass}" style="max-width:${maxWidth}px">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Add New</h5>
             <button type="button" class="btn-close" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <div class="alert alert-danger d-none" id="${MODAL_ID}-msg"></div>
-            <form id="${MODAL_ID}-form">
-              <div class="row g-3" id="${MODAL_ID}-fields"></div>
-            </form>
+            <div id="${MODAL_ID}-msg" class="alert alert-danger d-none mb-3"></div>
+            <div id="${MODAL_ID}-fields" class="row g-3"></div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-light" data-role="cancel">Cancel</button>
-            <button type="button" class="btn btn-primary" data-role="save">Save</button>
+            <button type="button" data-role="cancel" class="btn btn-light">Cancel</button>
+            <button type="button" data-role="save" class="btn btn-primary">Save</button>
           </div>
         </div>
       </div>
@@ -253,11 +249,20 @@ export function initStockPageModal(cfg) {
         btnD.type = "button";
         btnD.className = "btn btn-sm btn-outline-danger";
         btnD.textContent = "Delete";
+        
         btnD.addEventListener("click", async (e) => {
-          e.preventDefault(); e.stopPropagation();
+          e.preventDefault();
+          e.stopPropagation();
           if (!confirm("Hapus data ini?")) return;
-          try { await deleteDocById(d.id); }
-          catch (err) { console.error(err); alert("Gagal menghapus."); }
+          btnD.disabled = true;
+          try {
+            await deleteDocById(d.id);
+          } catch (err) {
+            console.error(err);
+            alert("Gagal menghapus.");
+          } finally {
+            btnD.disabled = false;
+          }
         });
 
         // Spasi tombol aksi
@@ -297,8 +302,10 @@ export function initStockPageModal(cfg) {
   }
 
   // Save
+  
   btnSave?.addEventListener("click", async () => {
     msgEl.classList.add("d-none");
+    btnSave.disabled = true;
     try {
       if (mode === "create") await createDoc();
       else if (mode === "edit" && editingId) await updateDocById(editingId);
@@ -307,6 +314,8 @@ export function initStockPageModal(cfg) {
       console.error(err);
       msgEl.textContent = "Gagal menyimpan data.";
       msgEl.classList.remove("d-none");
+    } finally {
+      btnSave.disabled = false;
     }
   });
 
@@ -358,8 +367,8 @@ export function initStockPageModal(cfg) {
     const includeTotals = typeof computeTotals === "function";
     const rows = [];
     for (const snap of docs) {
-      const data = snap.data() || {};
-      const row = {};
+      const data = snap.data() ?? {};
+      const row = { ID: snap.id };
       for (const f of fields) {
         const val = data?.[f.key];
         row[f.label || f.key] = (f.type === "number") ? Number(val || 0) : (val ?? "");
@@ -421,3 +430,4 @@ export function initStockPageModal(cfg) {
     );
   });
 }
+
