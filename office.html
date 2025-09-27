@@ -267,15 +267,18 @@
         </div>
     </div>
 
+	<!-- Download function -->
+	<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"></script>
+
 	<script type="module">
-  import { mountUserMenu } from "./js/user-menu.js?v=fix-20250926-1";
-  mountUserMenu({
-    rootSelector: "#user-menu-root",
-    profileUrl: "./profile.html",
-    aboutUrl: "./about.html",
-    loginUrl: "./login_main.html",
-  });
-</script>
+	  import { mountUserMenu } from "./js/user-menu.js?v=fix-20250926-1";
+	  mountUserMenu({
+	    rootSelector: "#user-menu-root",
+	    profileUrl: "./profile.html",
+	    aboutUrl: "./about.html",
+	    loginUrl: "./login_main.html",
+	  });
+	</script>
 
 	// Inisialisasi halaman
   <script type="module">
@@ -304,9 +307,6 @@
 	    }
 	  });
   </script>
-	
-	<!-- Tambahkan sebelum script inisialisasi -->
-	<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"></script>
 
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
