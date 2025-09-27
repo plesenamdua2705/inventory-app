@@ -145,14 +145,14 @@
                     <!-- Page Heading -->
                     
                    
-                    <!-- DataTables Example -->
+                     <!-- DataTables -->
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
 							<!-- Modal Content popup Form-->
-							<button type="button" class="btn btn-primary mb-1" data-toggle="modal" data-target="#addSouvenirModal">Add New Data</button>
+							<button id="btnAddNew" type="button" class="btn btn-primary mb-1" data-toggle="modal">Add New Data</button>
 							
 							<!-- Download button-->
-							<button type="button" class="btn btn-primary mb-1"><i
+							<button id="btnExportExcel" type="button" class="btn btn-primary mb-1"><i
                                 class="fas fa-download fa-sm text-white"></i></button>
 
 							<div class="modal fade" id="addSouvenirModal" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
@@ -160,7 +160,7 @@
 									<form>
 										<div class="modal-content">
 											<div class="modal-header">
-												<h5 class="modal-title" id="addSouvenirModalLabel">Add New Supplier</h5>
+												<h5 class="modal-title" id="addSouvenirModalLabel">Add New Stock</h5>
 												<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 													<span aria-hidden="true">&times;</span>
 												</button>
@@ -171,23 +171,22 @@
 													<label>Supplier Code</label>
 													<input type="number" class="form-control" required>
 												</div>
-												<div class="form-group">
+													<div class="form-group">
 													<label>Name</label>
-													<input type="text" class="form-control" required>
+													<input type="text" class="form-control">
 												</div>
 												<div class="form-group">
 													<label>Email</label>
-													<input type="email" class="form-control"placeholder="abc@bcd.com">
+													<input type="email" class="form-control" required>
 												</div>
 												<div class="form-group">
 													<label>Phone</label>
 													<input type="number" class="form-control">
 												</div>
 												<div class="form-group">
-													<label>Remarks</label>
+													<label>Remark</label>
 													<input type="text" class="form-control">
 												</div>
-												
 											</div>
 											<div class="modal-footer">
 												<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -200,14 +199,14 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <table class="table" table-bordered" table id="table-supplier" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
 											<th>Supplier Code</th>
                                             <th>Name</th>
                                             <th>Email</th>
 											<th>Phone</th>
-                                            <th>Remarks</th>
+                                            <th>Remark</th>
 											<th></th>
                                         </tr>
                                     </thead>
@@ -243,44 +242,56 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login_main.html">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
+		<!-- Download function -->
+	<!-- Source priority SheetJS: lokal → CDN fallback --> 
+	<script>
+	  window.SHEETJS_URLS = [
+	    "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+	    "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"
+	    // Opsional jsDelivr :
+	    // "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"
+	  ];
+	
+	  // Nonaktifkan log fallback agar Console bersih
+	  window.SHEETJS_DEBUG = false;
+	</script>
 
-	<!-- Role guard protection -->
+
 	<script type="module">
-	  import { guardPage } from '/js/auth-guard.js';
-	  import { mountUserMenu } from '/js/user-menu.js';
-	
-	  guardPage({
-	    allow: ['viewer','contributor','admin'],
-	    loginPage: '/login_main.html',
-	    redirectIfDenied: '/login_main.html'
-	  });
-	
+	  import { mountUserMenu } from "./js/user-menu.js?v=fix-20250926-1";
 	  mountUserMenu({
-	    rootSelector: '#user-menu-root',
-	    profileUrl: '/profile.html',
-	    aboutUrl: '/about.html',
-	    loginUrl: '/login_main.html'
+	    rootSelector: "#user-menu-root",
+	    profileUrl: "./profile.html",
+	    aboutUrl: "./about.html",
+	    loginUrl: "./login_main.html",
 	  });
 	</script>
+
+	// Inisialisasi halaman
+	  <script type="module">
+		  import { initStockPageModal } from "./js/stock-page-modal.js";
+		
+		  const fields = [
+			{ key: "supplierCode",   label: "Supplier Code",   type: "number",  required: true,  placeholder: "Contoh: 1002345" },
+			{ key: "name",       	 label: "Name",       	   type: "text",  required: true },
+			{ key: "email",          label: "Email",           type: "email" },
+			{ key: "phone",          label: "Phone",           type: "number" },
+			{ key: "remark",         label: "Remark",          type: "text" },
+		  ];
+		
+		  initStockPageModal({
+			collectionName: "supplier",
+			tableSelector: "#table-supplier",
+			fields,
+			computeTotals,
+			loginUrl: "/login_main.html",
+			ui: {
+			  size: "xl",     // "lg" | "xl" | "full"
+			  columns: 1,     // 1 | 2 | 3
+			  maxWidth: 1200  // px
+			}
+		  });
+	  </script>
 
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
@@ -300,5 +311,4 @@
     <script src="js/demo/datatables-demo.js"></script>
 
 </body>
-
 </html>
