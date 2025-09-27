@@ -200,6 +200,28 @@
 								</div>
 							</div>
                         </div>
+						
+					    <!-- 🔎 Kontrol: Show entries & Search -->
+					    <div class="row align-items-center g-2 mb-2" id="tableControls">
+					      <div class="col-12 col-md-6">
+					        <label class="form-label me-2 mb-0">Tampilkan</label>
+					        <select id="entriesSelect" class="form-select form-select-sm d-inline-block" style="width:auto;">
+					          <option value="10" selected>10</option>
+					          <option value="25">25</option>
+					          <option value="50">50</option>
+					          <option value="100">100</option>
+					          <option value="-1">Semua</option>
+					        </select>
+					        <span class="ms-1">entri</span>
+					      </div>
+					      <div class="col-12 col-md-6 text-md-end">
+					        <label for="searchMaterial" class="form-label me-2 mb-0">Cari Material Number</label>
+					        <input id="searchMaterial" type="text"
+					               class="form-control form-control-sm d-inline-block"
+					               style="width:220px;" placeholder="mis. MAT-001"/>
+					      </div>
+					    </div>
+
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table" table-bordered" table id="table-office" width="100%" cellspacing="0">
@@ -218,6 +240,14 @@
                                     <tbody></tbody>
                                 </table>
                             </div>
+							
+							<!-- Footer: info + pagination -->
+							    <div class="d-flex align-items-center justify-content-between mt-2">
+							      <div class="small text-muted" id="infoText">Menampilkan 0 sampai 0 dari 0 entri</div>
+							      <nav><ul class="pagination pagination-sm mb-0" id="pager"></ul></nav>
+							    </div>
+							  </div>
+
                         </div>
                     </div>
                 </div>
