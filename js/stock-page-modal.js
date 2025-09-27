@@ -43,8 +43,8 @@ export function initStockPageModal(cfg) {
   const canWrite = () => role === "admin" || role === "contributor";
 
   // --- Opsi UI ---
-  const size    = ui.size || "xl";            // 'lg' | 'xl' | 'full'
-  const columns = Number(ui.columns || 2);    // 1 | 2 | 3
+  const size     = ui.size || "xl";          // 'lg' | 'xl' | 'full'
+  const columns  = Number(ui.columns || 2);  // 1 | 2 | 3
   const maxWidth = ui.maxWidth ?? 1200;
 
   const MODAL_ID = `stockModal-${collectionName}`;
@@ -52,8 +52,8 @@ export function initStockPageModal(cfg) {
 
   const sizeClass =
     size === "full" ? "modal-fullscreen" :
-    size === "xl"   ? "modal-xl"         :
-    size === "lg"   ? "modal-lg"         : "";
+    size === "xl"   ? "modal-xl" :
+    size === "lg"   ? "modal-lg" : "";
 
   if (!modalEl) {
     modalEl = document.createElement("div");
@@ -86,7 +86,7 @@ export function initStockPageModal(cfg) {
     document.body.appendChild(modalEl);
   }
 
-  // --- Style tambahan (termasuk jarak tombol aksi & tombol icon) ---
+  // --- Style tambahan ---
   (function ensureStyle(){
     const STYLE_ID = `${MODAL_ID}-style`;
     if (document.getElementById(STYLE_ID)) return;
@@ -97,16 +97,12 @@ export function initStockPageModal(cfg) {
       #${MODAL_ID} .form-control { font-size: 1rem; padding: .65rem .85rem; }
       #${MODAL_ID} .row.g-3 { row-gap: 1rem; }
 
-      /* Modal barebone */
       .modal.show { display: block; }
       body.modal-open { overflow: hidden; }
       .modal-backdrop.custom { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1040; }
       #${MODAL_ID}.modal { z-index: 1050; }
 
-      /* Spasi tombol aksi di tabel */
       td .action-buttons { display: inline-flex; align-items: center; gap: .75rem; }
-
-      /* Gaya tombol icon di header (Export) */
       .btn-icon { display: inline-flex; align-items: center; gap: .5rem; }
       .btn-icon svg { flex: 0 0 auto; }
     `;
@@ -122,7 +118,7 @@ export function initStockPageModal(cfg) {
   const btnCloseX  = modalEl.querySelector('.btn-close');
 
   // --- State modal ---
-  let mode = "create";   // "create" | "edit"
+  let mode = "create";   // 'create' | 'edit'
   let editingId = null;
 
   // --- Modal controller (tanpa Bootstrap JS) ---
@@ -156,7 +152,7 @@ export function initStockPageModal(cfg) {
     if (e.key === "Escape" && modalEl.classList.contains("show")) hideModal();
   });
 
-  // === Build form (dinamis, sesuai jumlah kolom) ===
+  // === Form builder ===
   function buildForm(data = {}) {
     const colClass =
       columns === 1 ? "col-12" :
@@ -260,7 +256,6 @@ export function initStockPageModal(cfg) {
           catch (err) { console.error(err); alert("Gagal menghapus."); }
         });
 
-        // Spasi tombol aksi
         const actionsWrap = document.createElement("div");
         actionsWrap.className = "action-buttons";
         actionsWrap.append(btnE, btnD);
@@ -288,7 +283,7 @@ export function initStockPageModal(cfg) {
     showModal();
   }
 
-  // Event tombol Add
+  // --- Event tombol ---
   if (btnAdd) {
     btnAdd.addEventListener("click", (e) => {
       e.preventDefault();
@@ -296,7 +291,6 @@ export function initStockPageModal(cfg) {
     });
   }
 
-  // Save
   btnSave?.addEventListener("click", async () => {
     msgEl.classList.add("d-none");
     try {
@@ -311,7 +305,6 @@ export function initStockPageModal(cfg) {
   });
 
   // ====== EXPORT EXCEL ======
-  // Helper umum
   function loadScript(src) {
     return new Promise((resolve, reject) => {
       const s = document.createElement("script");
@@ -322,7 +315,7 @@ export function initStockPageModal(cfg) {
       document.head.appendChild(s);
     });
   }
-  
+
   function isSameOrigin(url) {
     try {
       const u = new URL(url, location.href);
@@ -331,7 +324,7 @@ export function initStockPageModal(cfg) {
       return false;
     }
   }
-  
+
   async function okSameOrigin(url) {
     try {
       const resp = await fetch(url, { method: "HEAD", cache: "no-store" });
@@ -340,24 +333,24 @@ export function initStockPageModal(cfg) {
       return false;
     }
   }
-  
+
   function ensureSheetJS() {
     return new Promise(async (resolve, reject) => {
       if (window.XLSX) return resolve(); // sudah ada
-  
+
       const urls = (window.SHEETJS_URLS && Array.isArray(window.SHEETJS_URLS))
         ? window.SHEETJS_URLS
         : [
             "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
             "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js",
+            "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"
           ];
-  
+
       const DEBUG = !!window.SHEETJS_DEBUG;
       let lastErr;
-  
+
       for (const url of urls) {
         try {
-          // preflight bila same-origin (hindari 404 di Console)
           if (isSameOrigin(url)) {
             const ok = await okSameOrigin(url);
             if (!ok) {
@@ -372,8 +365,58 @@ export function initStockPageModal(cfg) {
           if (DEBUG) console.warn("[SheetJS] gagal memuat dari:", url);
         }
       }
-      // ⬅️ perhatikan operator '||' di sini
+      // pastikan ada operator '||' di sini
       reject(lastErr || new Error("Tidak bisa memuat SheetJS dari semua sumber."));
+    });
+  }
+
+  function toLocalDatetimeStamp() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
+  }
+
+  function docsToRows(docs) {
+    const includeTotals = typeof computeTotals === "function";
+    const rows = [];
+    for (const snap of docs) {
+      const data = snap.data() || {};
+      const row = {};
+      for (const f of fields) {
+        const val = data?.[f.key];
+        row[f.label || f.key] = (f.type === "number") ? Number(val || 0) : (val ?? "");
+      }
+      if (includeTotals) row["Total"] = computeTotals(data);
+      if (data.createdAt?.toDate) row["Created At"] = data.createdAt.toDate().toISOString();
+      if (data.updatedAt?.toDate) row["Updated At"] = data.updatedAt.toDate().toISOString();
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  async function exportToExcel() {
+    try {
+      if (!latestDocs.length) {
+        alert("Data belum tersedia untuk diexport.");
+        return;
+      }
+      await ensureSheetJS();
+      const rows = docsToRows(latestDocs);
+      const ws = XLSX.utils.json_to_sheet(rows, { cellDates: false });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Data");
+      const filename = `${collectionName}_${toLocalDatetimeStamp()}.xlsx`;
+      XLSX.writeFile(wb, filename);
+    } catch (err) {
+      console.error(err);
+      alert("Export gagal. Coba refresh atau cek koneksi/CDN.");
+    }
+  }
+
+  if (btnExport) {
+    btnExport.addEventListener("click", (e) => {
+      e.preventDefault();
+      exportToExcel();
     });
   }
   // ====== END EXPORT EXCEL ======
@@ -398,7 +441,3 @@ export function initStockPageModal(cfg) {
       (err) => console.error("[stock-page-modal] snapshot error:", err)
     );
   });
-}
-
-
-
