@@ -268,15 +268,21 @@
     </div>
 
 	<!-- Download function -->
-	<!-- Sumber prioritas SheetJS: lokal → CDN fallback -->
-	  <script>
-	    window.SHEETJS_URLS = [
-	      "/libs/xlsx/xlsx.full.min.js",                          // (opsional) file lokal di Vercel
-	      "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js",
-	      "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
-	      "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"
-	    ];
-	  </script>
+	<!-- Sumber prioritas SheetJS: lokal → CDN fallback --> 
+	<script>
+	  // Urutan sumber: pilih yang paling sering lolos dulu
+	  window.SHEETJS_URLS = [
+	    "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+	    "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"
+		"https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"
+	    // Tambahkan jsDelivr kalau jaringan Mas kadang bisa:
+	    // "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"
+	  ];
+	
+	  // Nonaktifkan log fallback agar Console bersih
+	  window.SHEETJS_DEBUG = false;
+	</script>
+
 
 	<script type="module">
 	  import { mountUserMenu } from "./js/user-menu.js?v=fix-20250926-1";
