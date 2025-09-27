@@ -33,28 +33,27 @@ export function initStockPageModal(cfg) {
     table.appendChild(tbody);
   }
 
-  const btnAdd = document.getElementById("btnAddNew");
-  if (!btnAdd) console.warn("[stock-page-modal] Tombol #btnAddNew tidak ditemukan.");
-
-  // NEW: Tombol export (opsional bila ada di HTML)
+  const btnAdd    = document.getElementById("btnAddNew");
   const btnExport = document.getElementById("btnExportExcel");
+  if (!btnAdd)    console.warn("[stock-page-modal] Tombol #btnAddNew tidak ditemukan.");
+  if (!btnExport) console.warn("[stock-page-modal] Tombol #btnExportExcel tidak ditemukan.");
 
   // --- Role & izin ---
   let role = "viewer";
   const canWrite = () => role === "admin" || role === "contributor";
 
   // --- Opsi UI ---
-  const size = ui.size || "xl";            // 'lg' | 'xl' | 'full'
-  const columns = Number(ui.columns || 2);  // 1 | 2 | 3
+  const size    = ui.size || "xl";            // 'lg' | 'xl' | 'full'
+  const columns = Number(ui.columns || 2);    // 1 | 2 | 3
   const maxWidth = ui.maxWidth ?? 1200;
 
   const MODAL_ID = `stockModal-${collectionName}`;
   let modalEl = document.getElementById(MODAL_ID);
 
-  const sizeClass = size === "full" ? "modal-fullscreen"
-                   : size === "xl"  ? "modal-xl"
-                   : size === "lg"  ? "modal-lg"
-                   : "";
+  const sizeClass =
+    size === "full" ? "modal-fullscreen" :
+    size === "xl"   ? "modal-xl"         :
+    size === "lg"   ? "modal-lg"         : "";
 
   if (!modalEl) {
     modalEl = document.createElement("div");
@@ -63,11 +62,12 @@ export function initStockPageModal(cfg) {
     modalEl.setAttribute("tabindex", "-1");
     modalEl.setAttribute("aria-hidden", "true");
 
+    // >>> MODAL MARKUP LENGKAP <<<
     modalEl.innerHTML = `
       <div class="modal-dialog ${sizeClass}" style="max-width:${size === "full" ? "100%" : (maxWidth + "px")}">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Add New Data</h5>
+            <h5 class="modal-title">Add New</h5>
             <button type="button" class="btn-close" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -103,10 +103,10 @@ export function initStockPageModal(cfg) {
       .modal-backdrop.custom { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1040; }
       #${MODAL_ID}.modal { z-index: 1050; }
 
-      /* NEW: spasi tombol aksi di tabel */
+      /* Spasi tombol aksi di tabel */
       td .action-buttons { display: inline-flex; align-items: center; gap: .75rem; }
 
-      /* NEW: gaya tombol icon di header (Export) */
+      /* Gaya tombol icon di header (Export) */
       .btn-icon { display: inline-flex; align-items: center; gap: .5rem; }
       .btn-icon svg { flex: 0 0 auto; }
     `;
@@ -114,20 +114,18 @@ export function initStockPageModal(cfg) {
   })();
 
   // --- Referensi elemen modal ---
-  const modalDialog = modalEl.querySelector(".modal-dialog");
-  const modalTitle  = modalEl.querySelector(".modal-title");
-  const formEl      = modalEl.querySelector(`#${MODAL_ID}-form`);
-  const fieldsWrap  = modalEl.querySelector(`#${MODAL_ID}-fields`);
-  const msgEl       = modalEl.querySelector(`#${MODAL_ID}-msg`);
-  const btnSave     = modalEl.querySelector('[data-role="save"]');
-  const btnCancel   = modalEl.querySelector('[data-role="cancel"]');
-  const btnCloseX   = modalEl.querySelector('.btn-close');
+  const modalTitle = modalEl.querySelector(".modal-title");
+  const fieldsWrap = modalEl.querySelector(`#${MODAL_ID}-fields`);
+  const msgEl      = modalEl.querySelector(`#${MODAL_ID}-msg`);
+  const btnSave    = modalEl.querySelector('[data-role="save"]');
+  const btnCancel  = modalEl.querySelector('[data-role="cancel"]');
+  const btnCloseX  = modalEl.querySelector('.btn-close');
 
   // --- State modal ---
-  let mode = "create"; // "create" | "edit"
+  let mode = "create";   // "create" | "edit"
   let editingId = null;
 
-  // --- Tampilkan/sembunyikan modal (tanpa Bootstrap JS) ---
+  // --- Modal controller (tanpa Bootstrap JS) ---
   let backdropEl = null;
   function createBackdrop() {
     backdropEl = document.createElement("div");
@@ -135,17 +133,13 @@ export function initStockPageModal(cfg) {
     document.body.appendChild(backdropEl);
   }
   function removeBackdrop() {
-    if (backdropEl) {
-      backdropEl.remove();
-      backdropEl = null;
-    }
+    if (backdropEl) backdropEl.remove(), (backdropEl = null);
   }
   function showModal() {
     modalEl.classList.add("show");
     modalEl.style.display = "block";
     document.body.classList.add("modal-open");
     createBackdrop();
-    // Focus input pertama
     const firstInput = modalEl.querySelector("input, select, textarea, button");
     if (firstInput) setTimeout(() => firstInput.focus(), 50);
   }
@@ -155,23 +149,18 @@ export function initStockPageModal(cfg) {
     document.body.classList.remove("modal-open");
     removeBackdrop();
   }
-
-  // Tutup dengan klik backdrop / tombol Close / Escape
-  modalEl.addEventListener("click", (e) => {
-    if (e.target === modalEl) hideModal();
-  });
+  modalEl.addEventListener("click", (e) => { if (e.target === modalEl) hideModal(); });
   btnCloseX?.addEventListener("click", hideModal);
   btnCancel?.addEventListener("click", hideModal);
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modalEl.classList.contains("show")) hideModal();
   });
 
-  // === Build form: kolom dinamis ===
+  // === Build form (dinamis, sesuai jumlah kolom) ===
   function buildForm(data = {}) {
     const colClass =
       columns === 1 ? "col-12" :
-      columns === 2 ? "col-12 col-md-6" :
-                      "col-12 col-md-4";
+      columns === 2 ? "col-12 col-md-6" : "col-12 col-md-4";
 
     fieldsWrap.innerHTML = `
       ${fields.map(f => {
@@ -201,9 +190,7 @@ export function initStockPageModal(cfg) {
       const el = document.getElementById(`${MODAL_ID}-${f.key}`);
       if (!el) continue;
       let v = el.value;
-      if (f.type === "number") v = Number(v || 0);
-      else v = (v || "").trim();
-      out[f.key] = v;
+      out[f.key] = (f.type === "number") ? Number(v || 0) : (v || "").trim();
     }
     return out;
   }
@@ -226,11 +213,11 @@ export function initStockPageModal(cfg) {
     await deleteDoc(doc(db, collectionName, id));
   }
 
-  // NEW: simpan snapshot terbaru untuk kebutuhan Export
+  // Cache snapshot untuk export
   let latestDocs = [];
 
   function renderRows(snapshotDocs) {
-    latestDocs = snapshotDocs; // cache untuk export
+    latestDocs = snapshotDocs;
     tbody.innerHTML = "";
     const can = canWrite();
 
@@ -273,7 +260,7 @@ export function initStockPageModal(cfg) {
           catch (err) { console.error(err); alert("Gagal menghapus."); }
         });
 
-        // NEW: bungkus dengan container yang punya gap
+        // Spasi tombol aksi
         const actionsWrap = document.createElement("div");
         actionsWrap.className = "action-buttons";
         actionsWrap.append(btnE, btnD);
@@ -287,7 +274,7 @@ export function initStockPageModal(cfg) {
 
   function openCreate() {
     mode = "create"; editingId = null;
-    modalTitle.textContent = "Add New Data";
+    modalTitle.textContent = "Add New";
     buildForm({});
     msgEl.classList.add("d-none");
     showModal();
@@ -301,6 +288,7 @@ export function initStockPageModal(cfg) {
     showModal();
   }
 
+  // Event tombol Add
   if (btnAdd) {
     btnAdd.addEventListener("click", (e) => {
       e.preventDefault();
@@ -308,6 +296,7 @@ export function initStockPageModal(cfg) {
     });
   }
 
+  // Save
   btnSave?.addEventListener("click", async () => {
     msgEl.classList.add("d-none");
     try {
@@ -321,46 +310,94 @@ export function initStockPageModal(cfg) {
     }
   });
 
-  // ====== NEW: EXPORT EXCEL ======
-  // Helper: pastikan SheetJS tersedia (fallback auto-load bila belum ditambahkan di HTML)
+  // ====== EXPORT EXCEL ======
   function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    // Jangan pakai type="module" untuk global XLSX
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("Gagal memuat: " + src));
-    document.head.appendChild(s);
-  });
-}
+    return new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.async = true; // jangan 'module'
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error("Gagal memuat: " + src));
+      document.head.appendChild(s);
+    });
+  }
 
-function ensureSheetJS() {
-  return new Promise(async (resolve, reject) => {
-    if (window.XLSX) return resolve(); // sudah ada
+  function ensureSheetJS() {
+    return new Promise(async (resolve, reject) => {
+      if (window.XLSX) return resolve(); // sudah ada
 
-    const urls = (window.SHEETJS_URLS && Array.isArray(window.SHEETJS_URLS))
-      ? window.SHEETJS_URLS
-      : [
-          "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js",
-          "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
-          "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"
-        ];
+      const urls = (window.SHEETJS_URLS && Array.isArray(window.SHEETJS_URLS))
+        ? window.SHEETJS_URLS
+        : [
+            "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js",
+            "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+            "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"
+          ];
 
-    let lastErr;
-    for (const url of urls) {
-      try {
-        await loadScript(url);
-        if (window.XLSX) return resolve();
-      } catch (e) {
-        lastErr = e;
-        console.warn("[SheetJS] gagal memuat dari:", url);
+      let lastErr;
+      for (const url of urls) {
+        try {
+          await loadScript(url);
+          if (window.XLSX) return resolve();
+        } catch (e) {
+          lastErr = e;
+          console.warn("[SheetJS] gagal memuat dari:", url);
+        }
       }
-    }
-    reject(lastErr || new Error("Tidak bisa memuat SheetJS dari semua sumber."));
-  });
-}
+      reject(lastErr || new Error("Tidak bisa memuat SheetJS dari semua sumber."));
+    });
+  }
 
+  function toLocalDatetimeStamp() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
+  }
+
+  function docsToRows(docs) {
+    const includeTotals = typeof computeTotals === "function";
+    const rows = [];
+    for (const snap of docs) {
+      const data = snap.data() || {};
+      const row = {};
+      for (const f of fields) {
+        const val = data?.[f.key];
+        row[f.label || f.key] = (f.type === "number") ? Number(val || 0) : (val ?? "");
+      }
+      if (includeTotals) row["Total"] = computeTotals(data);
+      if (data.createdAt?.toDate) row["Created At"] = data.createdAt.toDate().toISOString();
+      if (data.updatedAt?.toDate) row["Updated At"] = data.updatedAt.toDate().toISOString();
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  async function exportToExcel() {
+    try {
+      if (!latestDocs.length) {
+        alert("Data belum tersedia untuk diexport.");
+        return;
+      }
+      await ensureSheetJS();
+      const rows = docsToRows(latestDocs);
+      const ws = XLSX.utils.json_to_sheet(rows, { cellDates: false });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Data");
+      const filename = `${collectionName}_${toLocalDatetimeStamp()}.xlsx`;
+      XLSX.writeFile(wb, filename);
+    } catch (err) {
+      console.error(err);
+      alert("Export gagal. Coba refresh atau cek koneksi/CDN.");
+    }
+  }
+
+  // Event tombol Export
+  if (btnExport) {
+    btnExport.addEventListener("click", (e) => {
+      e.preventDefault();
+      exportToExcel();
+    });
+  }
   // ====== END EXPORT EXCEL ======
 
   // ---- Auth & realtime ----
@@ -384,4 +421,3 @@ function ensureSheetJS() {
     );
   });
 }
-
