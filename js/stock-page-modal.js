@@ -350,7 +350,6 @@ export function initStockPageModal(cfg) {
         : [
             "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
             "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js",
-            "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js"
           ];
   
       const DEBUG = !!window.SHEETJS_DEBUG;
@@ -400,5 +399,6 @@ export function initStockPageModal(cfg) {
     );
   });
 }
+
 
 
