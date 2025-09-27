@@ -36,6 +36,9 @@ export function initStockPageModal(cfg) {
   const btnAdd = document.getElementById("btnAddNew");
   if (!btnAdd) console.warn("[stock-page-modal] Tombol #btnAddNew tidak ditemukan.");
 
+  // NEW: Tombol export (opsional bila ada di HTML)
+  const btnExport = document.getElementById("btnExportExcel");
+
   // --- Role & izin ---
   let role = "viewer";
   const canWrite = () => role === "admin" || role === "contributor";
@@ -48,7 +51,6 @@ export function initStockPageModal(cfg) {
   const MODAL_ID = `stockModal-${collectionName}`;
   let modalEl = document.getElementById(MODAL_ID);
 
-  // Map ukuran (kalau ada Bootstrap CSS)
   const sizeClass = size === "full" ? "modal-fullscreen"
                    : size === "xl"  ? "modal-xl"
                    : size === "lg"  ? "modal-lg"
@@ -65,7 +67,7 @@ export function initStockPageModal(cfg) {
       <div class="modal-dialog ${sizeClass}" style="max-width:${size === "full" ? "100%" : (maxWidth + "px")}">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Add New Stock</h5>
+            <h5 class="modal-title">Add New Data</h5>
             <button type="button" class="btn-close" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -84,7 +86,7 @@ export function initStockPageModal(cfg) {
     document.body.appendChild(modalEl);
   }
 
-  // --- Style tambahan agar nyaman dibaca di semua ukuran ---
+  // --- Style tambahan (termasuk jarak tombol aksi & tombol icon) ---
   (function ensureStyle(){
     const STYLE_ID = `${MODAL_ID}-style`;
     if (document.getElementById(STYLE_ID)) return;
@@ -94,10 +96,19 @@ export function initStockPageModal(cfg) {
       #${MODAL_ID} .form-label { font-weight: 600; }
       #${MODAL_ID} .form-control { font-size: 1rem; padding: .65rem .85rem; }
       #${MODAL_ID} .row.g-3 { row-gap: 1rem; }
+
+      /* Modal barebone */
       .modal.show { display: block; }
       body.modal-open { overflow: hidden; }
       .modal-backdrop.custom { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1040; }
       #${MODAL_ID}.modal { z-index: 1050; }
+
+      /* NEW: spasi tombol aksi di tabel */
+      td .action-buttons { display: inline-flex; align-items: center; gap: .75rem; }
+
+      /* NEW: gaya tombol icon di header (Export) */
+      .btn-icon { display: inline-flex; align-items: center; gap: .5rem; }
+      .btn-icon svg { flex: 0 0 auto; }
     `;
     document.head.appendChild(style);
   })();
@@ -215,9 +226,14 @@ export function initStockPageModal(cfg) {
     await deleteDoc(doc(db, collectionName, id));
   }
 
+  // NEW: simpan snapshot terbaru untuk kebutuhan Export
+  let latestDocs = [];
+
   function renderRows(snapshotDocs) {
+    latestDocs = snapshotDocs; // cache untuk export
     tbody.innerHTML = "";
     const can = canWrite();
+
     for (const d of snapshotDocs) {
       const data = d.data();
       const tr = document.createElement("tr");
@@ -239,11 +255,10 @@ export function initStockPageModal(cfg) {
       if (can) {
         const btnE = document.createElement("button");
         btnE.type = "button";
-        btnE.className = "btn btn-sm btn-outline-secondary me-1";
+        btnE.className = "btn btn-sm btn-outline-secondary";
         btnE.textContent = "Edit";
         btnE.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
+          e.preventDefault(); e.stopPropagation();
           openEdit(d.id, data);
         });
 
@@ -252,37 +267,34 @@ export function initStockPageModal(cfg) {
         btnD.className = "btn btn-sm btn-outline-danger";
         btnD.textContent = "Delete";
         btnD.addEventListener("click", async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
+          e.preventDefault(); e.stopPropagation();
           if (!confirm("Hapus data ini?")) return;
-          try {
-            await deleteDocById(d.id);
-          } catch (err) {
-            console.error(err);
-            alert("Gagal menghapus.");
-          }
+          try { await deleteDocById(d.id); }
+          catch (err) { console.error(err); alert("Gagal menghapus."); }
         });
 
-        tdA.appendChild(btnE);
-        tdA.appendChild(btnD);
+        // NEW: bungkus dengan container yang punya gap
+        const actionsWrap = document.createElement("div");
+        actionsWrap.className = "action-buttons";
+        actionsWrap.append(btnE, btnD);
+        tdA.appendChild(actionsWrap);
       }
+
       tr.appendChild(tdA);
       tbody.appendChild(tr);
     }
   }
 
   function openCreate() {
-    mode = "create";
-    editingId = null;
-    modalTitle.textContent = "Add New";
+    mode = "create"; editingId = null;
+    modalTitle.textContent = "Add New Data";
     buildForm({});
     msgEl.classList.add("d-none");
     showModal();
   }
 
   function openEdit(id, data) {
-    mode = "edit";
-    editingId = id;
+    mode = "edit"; editingId = id;
     modalTitle.textContent = "Edit Data";
     buildForm(data);
     msgEl.classList.add("d-none");
@@ -293,7 +305,6 @@ export function initStockPageModal(cfg) {
     btnAdd.addEventListener("click", (e) => {
       e.preventDefault();
       if (canWrite()) openCreate();
-      // Jika role viewer, bisa tampilkan toast/info di sini bila diinginkan.
     });
   }
 
@@ -309,6 +320,77 @@ export function initStockPageModal(cfg) {
       msgEl.classList.remove("d-none");
     }
   });
+
+  // ====== NEW: EXPORT EXCEL ======
+  // Helper: pastikan SheetJS tersedia (fallback auto-load bila belum ditambahkan di HTML)
+  function ensureSheetJS() {
+    return new Promise((resolve, reject) => {
+      if (window.XLSX) return resolve();
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.full.min.js";
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error("Gagal memuat SheetJS"));
+      document.head.appendChild(s);
+    });
+  }
+
+  function toLocalDatetimeStamp() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
+  }
+
+  function docsToRows(docs) {
+    const includeTotals = typeof computeTotals === "function";
+    const rows = [];
+
+    for (const snap of docs) {
+      const data = snap.data() || {};
+      const row = {};
+      // Pakai urutan & label sesuai definisi fields
+      for (const f of fields) {
+        const val = data?.[f.key];
+        row[f.label || f.key] = (f.type === "number") ? Number(val || 0) : (val ?? "");
+      }
+      if (includeTotals) {
+        row["Total"] = computeTotals(data);
+      }
+      // Optional: sertakan waktu buat audit (string)
+      if (data.createdAt?.toDate) row["Created At"] = data.createdAt.toDate().toISOString();
+      if (data.updatedAt?.toDate) row["Updated At"] = data.updatedAt.toDate().toISOString();
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  async function exportToExcel() {
+    try {
+      if (!latestDocs.length) {
+        alert("Data belum tersedia untuk diexport.");
+        return;
+      }
+      await ensureSheetJS();
+
+      const rows = docsToRows(latestDocs);
+      const ws = XLSX.utils.json_to_sheet(rows, { cellDates: false });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Data");
+
+      const filename = `${collectionName}_${toLocalDatetimeStamp()}.xlsx`;
+      XLSX.writeFile(wb, filename);
+    } catch (err) {
+      console.error(err);
+      alert("Gagal export Excel.");
+    }
+  }
+
+  if (btnExport) {
+    btnExport.addEventListener("click", (e) => {
+      e.preventDefault();
+      exportToExcel();
+    });
+  }
+  // ====== END EXPORT EXCEL ======
 
   // ---- Auth & realtime ----
   onAuthStateChanged(auth, async (user) => {
@@ -331,4 +413,3 @@ export function initStockPageModal(cfg) {
     );
   });
 }
-
