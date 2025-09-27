@@ -65,7 +65,7 @@ export function initStockPageModal(cfg) {
       <div class="modal-dialog ${sizeClass}" style="max-width:${size === "full" ? "100%" : (maxWidth + "px")}">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Add New</h5>
+            <h5 class="modal-title">Add New Stock</h5>
             <button type="button" class="btn-close" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -331,3 +331,4 @@ export function initStockPageModal(cfg) {
     );
   });
 }
+
