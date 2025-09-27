@@ -120,9 +120,9 @@ export function initStockPageModal(cfg) {
       td .action-buttons { display: inline-flex; align-items: center; gap: .75rem; }
 
       /* Table controls */
-      .table-controls { margin: .5rem 0; }
-      .table-controls .form-select-sm { padding: .25rem .5rem; }
-      .table-footer { margin-top: .5rem; }
+      .table-controls { margin: 0.5rem 0; }
+      .table-controls .form-select-sm { padding: 0.25rem .5rem; }
+      .table-footer { margin-top: 0.5rem; }
 
       /* Pagination (tanpa Bootstrap JS) */
       .pagination { display:flex; gap:.25rem; list-style:none; padding:0; margin:0; }
@@ -591,3 +591,4 @@ export function initStockPageModal(cfg) {
     );
   });
 }
+
