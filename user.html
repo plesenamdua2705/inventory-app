@@ -237,162 +237,42 @@
     </a>
    
 
-	<!-- Script Module -->
-  <script type="module">
-    import { guardPage } from './auth-guard.js'; 
-    import { mountUserMenu } from './user-menu.js'; 
-    import { app, auth } from './firebase-init.js';
-    import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-functions.js";
-
-    // 1) Proteksi halaman untuk admin saja
-    guardPage({ allow: ['admin'], redirectIfDenied: './index.html' }); 
-
-    // 2) Pasang user menu (tampilkan badge role)
-    mountUserMenu({ rootSelector: '#user-menu-root', showRoleBadge: true });
-    const functions = getFunctions(app, 'asia-southeast2');
-
-    // Callable Functions
-    const fnListUsers   = httpsCallable(functions, 'adminListUsers');
-    const fnCreateUser  = httpsCallable(functions, 'adminCreateUser');
-    const fnUpdateUser  = httpsCallable(functions, 'adminUpdateUser');
-    const fnDeleteUser  = httpsCallable(functions, 'adminDeleteUser');
+	<script type="module">
+	  import { auth } from './firebase-init.js';
 	
-	await createUser({ email, displayName, role });
+	  async function authHeaders() {
+	    const idToken = await auth.currentUser.getIdToken();
+	    return { 'Authorization': `Bearer ${idToken}`, 'Content-Type': 'application/json' };
+	  }
+	
+	  async function createUserServer({ email, displayName, role }) {
+	    const res = await fetch('/api/admin/create-user', {
+	      method: 'POST',
+	      headers: await authHeaders(),
+	      body: JSON.stringify({ email, displayName, role })
+	    });
+	    if (!res.ok) throw new Error(await res.text());
+	    return res.json();
+	  }
 
-    // Elemen UI
-    const tbody = document.querySelector('#tbodyUsers');
-    const modal = document.querySelector('#modalUser');
-    const form  = document.querySelector('#formUser');
-    const btnAdd = document.querySelector('#btnAdd');
-    const btnCancel = document.querySelector('#btnCancel');
-    const modalTitle = document.querySelector('#modalTitle');
-
-    // Modal helpers (ganti dengan modal lib yang Mas pakai)
-    const openModal = () => (modal.hidden = false);
-    const closeModal = () => (modal.hidden = true);
-
-    // Render row
-    function renderRows(items) {
-      tbody.innerHTML = '';
-      for (const u of items) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${u.email || ''}</td>
-          <td>${u.displayName || ''}</td>
-          <td>${u.role || 'viewer'}</td>
-          <td>${u.disabled ? 'Disabled' : 'Active'}</td>
-          <td>${u.creationTime || '-'}</td>
-          <td>${u.lastSignInTime || '-'}</td>
-          <td>
-            <button data-act="edit" data-uid="${u.uid}">Edit</button>
-            <button data-act="toggle" data-uid="${u.uid}" data-disabled="${!!u.disabled}">
-              ${u.disabled ? 'Enable' : 'Disable'}
-            </button>
-            <button data-act="reset" data-email="${u.email}">Reset Password</button>
-            <button data-act="delete" data-uid="${u.uid}">Delete</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      }
-    }
-
-    async function loadUsers() {
-      const { data } = await fnListUsers(); // [{uid,email,displayName,role,disabled,creationTime,lastSignInTime}]
-      renderRows(data || []);
-    }
-
-    // Add New
-    btnAdd.addEventListener('click', () => {
-      form.reset();
-      form.uid.value = '';
-      modalTitle.textContent = 'Add New User';
-      openModal();
-    });
-
-    // Cancel
-    btnCancel.addEventListener('click', (e) => {
-      e.preventDefault();
-      closeModal();
-    });
-
-    // Save (Add / Update)
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const payload = Object.fromEntries(new FormData(form));
-      try {
-        if (!payload.uid) {
-          // CREATE
-          await fnCreateUser({
-            email: payload.email,
-            displayName: payload.displayName || '',
-            role: payload.role
-          });
-          // Kirim reset password dari client (email sudah ada di Auth)
-          await sendPasswordResetEmail(auth, payload.email);
-        } else {
-          // UPDATE (role)
-          await fnUpdateUser({
-            uid: payload.uid,
-            role: payload.role,
-            displayName: payload.displayName || null
-          });
-        }
-        closeModal();
-        await loadUsers();
-        alert('Berhasil disimpan.');
-      } catch (err) {
-        console.error(err);
-        alert('Gagal menyimpan: ' + (err.message || err));
-      }
-    });
-
-    // Actions
-    tbody.addEventListener('click', async (e) => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
-      const act = btn.dataset.act;
-
-      try {
-        if (act === 'edit') {
-          const uid = btn.dataset.uid;
-          const row = btn.closest('tr').children;
-          // Prefill dari tabel
-          form.uid.value = uid;
-          form.email.value = row[0].textContent.trim();
-          form.email.disabled = true; // email tidak diubah
-          form.displayName.value = row[1].textContent.trim();
-          form.role.value = row[2].textContent.trim();
-          modalTitle.textContent = 'Edit User';
-          openModal();
-        }
-        if (act === 'toggle') {
-          const uid = btn.dataset.uid;
-          const disabled = btn.dataset.disabled === 'true';
-          await fnUpdateUser({ uid, disabled: !disabled });
-          await loadUsers();
-        }
-        if (act === 'reset') {
-          const email = btn.dataset.email;
-          await sendPasswordResetEmail(auth, email);
-          alert('Email reset password telah dikirim.');
-        }
-        if (act === 'delete') {
-          const uid = btn.dataset.uid;
-          if (confirm('Yakin menghapus user ini?')) {
-            await fnDeleteUser({ uid });
-            await loadUsers();
-          }
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Operasi gagal: ' + (err.message || err));
-      }
-    });
-
-    // Inisialisasi
-    loadUsers();
-  </script>
+	  // Contoh binding form:
+	  // document.querySelector('#formUser').addEventListener('submit', async (e) => {
+	  //   e.preventDefault();
+	  //   const f = e.currentTarget;
+	  //   const payload = {
+	  //     email: f.email.value.trim(),
+	  //     displayName: f.displayName.value.trim(),
+	  //     role: f.role.value
+	  //   };
+	  //   try {
+	  //     await createUserServer(payload);
+	  //     alert('User dibuat. Email reset password telah dikirim.');
+	  //     // TODO: refresh tabel users
+	  //   } catch (err) {
+	  //     alert('Gagal: ' + (err.message || err));
+	  //   }
+	  // });
+	</script>
 
 </body>
 </html>
