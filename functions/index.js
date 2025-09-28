@@ -6,93 +6,56 @@ admin.initializeApp();
 const db = admin.firestore();
 
 async function requireAdmin(context) {
-  if (!context.auth) {
-    throw new HttpsError('unauthenticated', 'Harus login.');
-  }
+  if (!context.auth) throw new HttpsError('unauthenticated', 'Harus login.');
   const snap = await db.collection('users').doc(context.auth.uid).get();
   const role = snap.exists ? snap.data().role : 'viewer';
-  if (role !== 'admin') {
-    throw new HttpsError('permission-denied', 'Admin only.');
-  }
+  if (role !== 'admin') throw new HttpsError('permission-denied', 'Admin only.');
 }
 
-// Set region ke Jakarta untuk latensi rendah (opsional tapi direkomendasikan)
-const region = { region: 'asia-southeast2' };
-
-exports.adminListUsers = onCall(region, async (req) => {
+// Fungsi minimal: buat user + set role di Firestore + (opsional) klaim
+exports.createUserAndInitRole = onCall({ region: 'asia-southeast2' }, async (req) => {
   await requireAdmin(req);
-  const list = await admin.auth().listUsers(1000);
-  const fsUsersSnap = await db.collection('users').get();
-  const roles = {};
-  fsUsersSnap.forEach(d => roles[d.id] = d.data());
 
-  const data = list.users.map(u => ({
-    uid: u.uid,
-    email: u.email || '',
-    displayName: u.displayName || '',
-    disabled: !!u.disabled,
-    creationTime: u.metadata?.creationTime || '',
-    lastSignInTime: u.metadata?.lastSignInTime || '',
-    role: roles[u.uid]?.role || 'viewer'
-  }));
-  return data;
-});
-
-exports.adminCreateUser = onCall(region, async (req) => {
-  await requireAdmin(req);
   const { email, displayName = '', role = 'viewer' } = req.data || {};
   if (!email) throw new HttpsError('invalid-argument', 'Email wajib.');
-  if (!['admin','contributor','viewer'].includes(role))
+  if (!['admin', 'contributor', 'viewer'].includes(role)) {
     throw new HttpsError('invalid-argument', 'Role tidak valid.');
+  }
 
-  const user = await admin.auth().createUser({ email, displayName, disabled: false });
+  // Cek apakah user sudah ada
+  let userRecord;
+  try {
+    userRecord = await admin.auth().getUserByEmail(email);
+  } catch (_) {
+    userRecord = null; // email belum terdaftar
+  }
 
-  await db.collection('users').doc(user.uid).set({
-    email, displayName, role, disabled: false,
+  if (!userRecord) {
+    // Buat user baru di Auth
+    userRecord = await admin.auth().createUser({ email, displayName, disabled: false });
+  } else {
+    // Update displayName jika diinput
+    if (displayName && userRecord.displayName !== displayName) {
+      await admin.auth().updateUser(userRecord.uid, { displayName });
+    }
+  }
+
+  // Simpan/merge profil & role di Firestore
+  await db.collection('users').doc(userRecord.uid).set({
+    email,
+    displayName,
+    role,
+    disabled: false,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    createdBy: req.auth.uid
+    createdBy: req.auth.uid,
   }, { merge: true });
 
-  await admin.auth().setCustomUserClaims(user.uid, { role });
-  return { uid: user.uid };
-});
+  // (Opsional) set custom claims (berguna jika kelak dipakai di Rules/cek token)
+  await admin.auth().setCustomUserClaims(userRecord.uid, { role });
 
-exports.adminUpdateUser = onCall(region, async (req) => {
-  await requireAdmin(req);
-  const { uid, role, disabled, displayName } = req.data || {};
-  if (!uid) throw new HttpsError('invalid-argument', 'uid wajib.');
+  // Catatan: pengiriman email reset password akan dilakukan dari client (user.html)
+  // via sendPasswordResetEmail(auth, email). (Resmi didukung Web SDK)
+  // https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#sendpasswordresetemail
 
-  const updatesAuth = {};
-  const updatesFs = { updatedAt: admin.firestore.FieldValue.serverTimestamp() };
-
-  if (typeof disabled === 'boolean') {
-    updatesAuth.disabled = disabled;
-    updatesFs.disabled = disabled;
-  }
-  if (typeof displayName === 'string') {
-    updatesAuth.displayName = displayName;
-    updatesFs.displayName = displayName;
-  }
-  if (role) {
-    if (!['admin','contributor','viewer'].includes(role))
-      throw new HttpsError('invalid-argument', 'Role tidak valid.');
-    updatesFs.role = role;
-    await admin.auth().setCustomUserClaims(uid, { role });
-  }
-  if (Object.keys(updatesAuth).length) {
-    await admin.auth().updateUser(uid, updatesAuth);
-  }
-  if (Object.keys(updatesFs).length) {
-    await db.collection('users').doc(uid).set(updatesFs, { merge: true });
-  }
-  return { ok: true };
-});
-
-exports.adminDeleteUser = onCall(region, async (req) => {
-  await requireAdmin(req);
-  const { uid } = req.data || {};
-  if (!uid) throw new HttpsError('invalid-argument', 'uid wajib.');
-  await admin.auth().deleteUser(uid);
-  await db.collection('users').doc(uid).delete().catch(() => {});
-  return { ok: true };
+  return { uid: userRecord.uid, existed: !!userRecord.metadata?.creationTime && false };
 });
