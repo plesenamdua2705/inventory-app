@@ -238,7 +238,29 @@
    
 
 	<script type="module">
-	  import { auth } from './firebase-init.js';
+	  import { guardPage } from '/js/auth-guard.js';
+	  import { mountUserMenu } from '/js/user-menu.js';
+	  import { auth, db } from '/js/firebase-init.js';
+	  import {
+	    onAuthStateChanged,
+	    updatePassword,
+	    EmailAuthProvider,
+	    reauthenticateWithCredential,
+	    sendPasswordResetEmail
+	  } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
+	  import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js';
+	
+	  // Proteksi halaman
+	  guardPage({ allow:['viewer','contributor','admin'], loginPage:'/login_main.html', redirectIfDenied:'/login_main.html' });
+	
+	  // Pasang menu user
+	 
+		mountUserMenu({
+		    rootSelector: "#user-menu-root",
+		    profileUrl: "./profile.html",
+		    aboutUrl: "./about.html",
+		    loginUrl: "./login_main.html",
+		  });
 	
 	  async function authHeaders() {
 	    const idToken = await auth.currentUser.getIdToken();
