@@ -1,419 +1,238 @@
+<!-- user.html (ringkas, fokus pada bagian penting) -->
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="id">
 <head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="PSM Inventory">
-    <meta name="author" content="Ardhiansyah">
-
-    <title>User Management</title>
-	
-	<!-- Fav icon -->
-	<link rel="icon" href="img/fav.png" type="image/png">
-
-    <!-- Custom fonts for this template -->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
-    <link href="css/sb-admin-2.min.css" rel="stylesheet">
-
-    <!-- Custom styles for this page -->
-    <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-
+  <meta charset="UTF-8" />
+  <title>User Management · E-STOCK</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- Tambahkan CSS Mas Ardi sendiri (Bootstrap/tema) -->
 </head>
+<body>
+  <!-- Navbar/Header -->
+  <header>
+    <adex.htmlE-Stock</a>
+    <nav>
+      <!-- ... menu lain ... -->
+      souvenir.htmlSouvenir</a>
+      ppe.htmlPPE</a>
+      office.htmlOffice Support</a>
+      <a hrefr.htmlSupplier</a>
+      user.htmlUsers</a> <!-- halaman aktif -->
+    </nav>
+    <div id="user-menu-root" style="margin-left:auto;"></div>
+  </header>
 
-<body id="page-top">
+  <main class="container">
+    <h1>User Management</h1>
 
-    <!-- Page Wrapper -->
-    <div id="wrapper">
+    <button id="btnAdd" class="btn btn-primary">Add New User</button>
 
-        <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-
-            <!-- Sidebar - Brand -->
-             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
-                <div class="sidebar-brand-icon ">
-                    <img src="img/logovale.png" alt="Logo" class="logo" style="width: 60px; height: 50px;"/>
-                </div>
-                <div class="sidebar-brand-text mx-3">E-Stock</div>
-            </a>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
-
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item">
-                <a class="nav-link" href="index.html">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Input data
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu - Data Barang -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-                    aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fas fa-fw fa-box"></i>
-                    <span>Data Barang</span>
-                </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Data Stocklist :</h6>
-                        <a class="collapse-item" href="souvenir.html">Souvenir</a>
-                        <a class="collapse-item" href="ppe.html">PPE</a>
-						<a class="collapse-item" href="office.html">Office Support</a>
-                    </div>
-                </div>
-            </li>
-			
-			 <!-- Nav Item - Data Suplier -->
-            <li class="nav-item">
-				<a class="nav-link" href="supplier.html">
-					<i class="fas fa-fw fa-truck"></i>
-					<span>Supplier</span>
-				</a>
-			</li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item active">
-                <a class="nav-link" href="user.html">
-					<i class="fas fa-fw fa-user-plus"></i>
-					<span>Users</span>
-				</a>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-
-            <!-- Nav Item - Sidebar toggle -->
-            <div class="text-center d-none d-md-inline">
-				<button class="rounded-circle border-0" id="sidebarToggle"></button>
-			</div>
-        </ul>
-        <!-- End of Sidebar -->
-
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column">
-
-            <!-- Main Content -->
-            <div id="content">
-
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-
-                    <!-- Sidebar Toggle (Topbar) -->
-                    <form class="form-inline">
-                        <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                            <i class="fa fa-bars"></i>
-                        </button>
-                    </form>
-					
-					<!-- Page Heading -->
-                    <div class="d-flex align-items-center justify-content-center mb-1">
-                        <h1 class="h3 mb-1 text-gray-800">User Management</h1>
-                    </div>
-
-                    <!-- Topbar Navbar -->
-                    <ul class="navbar-nav ml-auto">
-
-                    <!-- Nav Item-Kanan-atas: user info dinamis -->
-					<div id="user-menu-root" class="nav-item dropdown no-arrow"></div>	
-                    </ul>
-                </nav>
-                <!-- End of Topbar -->
-
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-
-                    <!-- DataTales Example -->
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-							<!-- Modal Content popup Form-->
-							<button type="button" class="btn btn-primary mb-1" data-toggle="modal" data-target="#addSouvenirModal">Add New User</button>
-							<div class="modal fade" id="addSouvenirModal" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
-								<div class="modal-dialog" role="document">
-									<form>
-										<div class="modal-content">
-											<div class="modal-header">
-												<h5 class="modal-title" id="addSouvenirModalLabel">Add New User</h5>
-												<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-													<span aria-hidden="true">&times;</span>
-												</button>
-											</div>
-											<div class="modal-body">
-												<!-- Form fields -->
-												<div class="form-group">
-													<label>User Name</label>
-													<input type="text" class="form-control" required>
-												</div>
-												<div class="form-group">
-													<label>Password</label>
-													<input type="password" class="form-control"placeholder="ex.Jfg124@" required>
-												</div>
-												<div class="form-group">
-													<label>Permission</label>
-													<select type="text" class="form-control" required>
-														<option selected>Admin</option>
-														<option selected>Contributor</option>
-														<option selected>Viewer</option>
-													</select>
-												</div>
-											</div>
-											<div class="modal-footer">
-												<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-												<button type="submit" class="btn btn-primary">Save</button>
-											</div>
-										</div>
-									</form>
-								</div>
-							</div>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                    <thead>
-                                        <tr>
-                                            <th>User Name</th>
-                                            <th>Password</th>
-                                            <th>Role</th>
-                                            <th>Created</th>
-											<th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-                <!-- /.container-fluid -->
-
-            </div>
-            <!-- End of Main Content -->
-
-            <!-- Footer -->
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Production System Management 2025</span>
-                    </div>
-                </div>
-            </footer>
-            <!-- End of Footer -->
-
+    <!-- Modal Add/Edit User (tanpa password) -->
+    <div id="modalUser" hidden>
+      <form id="formUser">
+        <h3 id="modalTitle">Add New User</h3>
+        <input type="hidden" name="uid" />
+        <div>
+          <label>Email</label>
+          <input name="email" type="email" required />
         </div>
-        <!-- End of Content Wrapper -->
-
-    </div>
-    <!-- End of Page Wrapper -->
-
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login_main.html">Logout</a>
-                </div>
-            </div>
+        <div>
+          <label>Nama (opsional)</label>
+          <input name="displayName" type="text" />
         </div>
+        <div>
+          <label>Role</label>
+          <select name="role" required>
+            <option value="admin">Admin</option>
+            <option value="contributor">Contributor</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </div>
+        <div style="margin-top:1rem;">
+          <button type="button" id="btnCancel">Cancel</button>
+          <button type="submit" id="btnSave">Save</button>
+        </div>
+        <p id="formHint" style="font-size:12px;color:#666;margin-top:.5rem;">
+          Setelah dibuat, kirim link reset password ke email user.
+        </p>
+      </form>
     </div>
 
-	<!-- 2) Guard: Halaman ini khusus ADMIN -->
-	<script type="module">
-	  import { guardPage } from '/js/auth-guard.js';
-	  import { mountUserMenu } from '/js/user-menu.js';
+    <!-- Tabel User -->
+    <div class="table-responsive">
+      <table id="tblUsers" class="table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Nama</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Dibuat</th>
+            <th>Last Sign-in</th>
+            <th style="width:220px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyUsers"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Script Module -->
+  <script type="module">
+    import { guardPage } from './auth-guard.js'; 
+    import { mountUserMenu } from './user-menu.js'; 
+    import { app, auth } from './firebase-init.js';
+    import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-functions.js";
+
+    // 1) Proteksi halaman untuk admin saja
+    guardPage({ allow: ['admin'], redirectIfDenied: './index.html' }); 
+
+     // 2) Pasang user menu (tampilkan badge role)
+    mountUserMenu({ rootSelector: '#user-menu-root', showRoleBadge: true });
+    const functions = getFunctions(app, 'asia-southeast2');
+
+    // Callable Functions
+    const fnListUsers   = httpsCallable(functions, 'adminListUsers');
+    const fnCreateUser  = httpsCallable(functions, 'adminCreateUser');
+    const fnUpdateUser  = httpsCallable(functions, 'adminUpdateUser');
+    const fnDeleteUser  = httpsCallable(functions, 'adminDeleteUser');
 	
-	  guardPage({
-	    allow: ['viewer','contributor','admin'],
-	    loginPage: '/login_main.html',
-	    redirectIfDenied: '/login_main.html'
-	  });
+	await createUser({ email, displayName, role });
+
+    // Elemen UI
+    const tbody = document.querySelector('#tbodyUsers');
+    const modal = document.querySelector('#modalUser');
+    const form  = document.querySelector('#formUser');
+    const btnAdd = document.querySelector('#btnAdd');
+    const btnCancel = document.querySelector('#btnCancel');
+    const modalTitle = document.querySelector('#modalTitle');
+
+    // Modal helpers (ganti dengan modal lib yang Mas pakai)
+    const openModal = () => (modal.hidden = false);
+    const closeModal = () => (modal.hidden = true);
+
+    // Render row
+    function renderRows(items) {
+      tbody.innerHTML = '';
+      for (const u of items) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.email || ''}</td>
+          <td>${u.displayName || ''}</td>
+          <td>${u.role || 'viewer'}</td>
+          <td>${u.disabled ? 'Disabled' : 'Active'}</td>
+          <td>${u.creationTime || '-'}</td>
+          <td>${u.lastSignInTime || '-'}</td>
+          <td>
+            <button data-act="edit" data-uid="${u.uid}">Edit</button>
+            <button data-act="toggle" data-uid="${u.uid}" data-disabled="${!!u.disabled}">
+              ${u.disabled ? 'Enable' : 'Disable'}
+            </button>
+            <button data-act="reset" data-email="${u.email}">Reset Password</button>
+            <button data-act="delete" data-uid="${u.uid}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function loadUsers() {
+      const { data } = await fnListUsers(); // [{uid,email,displayName,role,disabled,creationTime,lastSignInTime}]
+      renderRows(data || []);
+    }
+
+    // Add New
+    btnAdd.addEventListener('click', () => {
+      form.reset();
+      form.uid.value = '';
+      modalTitle.textContent = 'Add New User';
+      openModal();
+    });
+
+    // Cancel
+    btnCancel.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeModal();
+    });
+
+    // Save (Add / Update)
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(form));
+      try {
+        if (!payload.uid) {
+          // CREATE
+          await fnCreateUser({
+            email: payload.email,
+            displayName: payload.displayName || '',
+            role: payload.role
+          });
+          // Kirim reset password dari client (email sudah ada di Auth)
+          await sendPasswordResetEmail(auth, payload.email);
+        } else {
+          // UPDATE (role)
+          await fnUpdateUser({
+            uid: payload.uid,
+            role: payload.role,
+            displayName: payload.displayName || null
+          });
+        }
+        closeModal();
+        await loadUsers();
+        alert('Berhasil disimpan.');
+      } catch (err) {
+        console.error(err);
+        alert('Gagal menyimpan: ' + (err.message || err));
+      }
+    });
+
+    // Actions
+    tbody.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const act = btn.dataset.act;
+
+      try {
+        if (act === 'edit') {
+          const uid = btn.dataset.uid;
+          const row = btn.closest('tr').children;
+          // Prefill dari tabel
+          form.uid.value = uid;
+          form.email.value = row[0].textContent.trim();
+          form.email.disabled = true; // email tidak diubah
+          form.displayName.value = row[1].textContent.trim();
+          form.role.value = row[2].textContent.trim();
+          modalTitle.textContent = 'Edit User';
+          openModal();
+        }
+        if (act === 'toggle') {
+          const uid = btn.dataset.uid;
+          const disabled = btn.dataset.disabled === 'true';
+          await fnUpdateUser({ uid, disabled: !disabled });
+          await loadUsers();
+        }
+        if (act === 'reset') {
+          const email = btn.dataset.email;
+          await sendPasswordResetEmail(auth, email);
+          alert('Email reset password telah dikirim.');
+        }
+        if (act === 'delete') {
+          const uid = btn.dataset.uid;
+          if (confirm('Yakin menghapus user ini?')) {
+            await fnDeleteUser({ uid });
+            await loadUsers();
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Operasi gagal: ' + (err.message || err));
+      }
+    });
+
+    // Inisialisasi
+    loadUsers();
+  </script>
 	
-	  mountUserMenu({
-	    rootSelector: '#user-menu-root',
-	    profileUrl: '/profile.html',
-	    aboutUrl: '/about.html',
-	    loginUrl: '/login_main.html'
-	  });
-	</script>
-
-	<!-- 3) User Management Enhancer (ADD-ONLY) -->
-	<script type="module">
-	  import { auth, db } from "/js/firebase-init.js";
-	  import {
-		collection, onSnapshot, query, orderBy, doc, updateDoc, serverTimestamp
-	  } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
-	  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-
-	  // Opsional: Callable Functions (jika sudah dideploy)
-	  let setUserRoleCF = null, setUserDisabledCF = null;
-	  try {
-		const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.3/firebase-functions.js");
-		const functions = getFunctions();
-		setUserRoleCF = httpsCallable(functions, "setUserRole");
-		setUserDisabledCF = httpsCallable(functions, "setUserDisabled");
-		console.info("[UM] Cloud Functions detected");
-	  } catch {
-		console.warn("[UM] Cloud Functions not available, using Firestore fallback");
-	  }
-
-	  // Tambah style ringan (tidak ganggu CSS Anda)
-	  const style = document.createElement("style");
-	  style.textContent = `
-		table.um-table { width:100%; border-collapse: collapse; margin-top:.5rem; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-		table.um-table th, table.um-table td { border-bottom:1px solid #e5e7eb; padding:.6rem .5rem; text-align:left; }
-		table.um-table th { background:#f8fafc; }
-		.um-btn { padding:.45rem .7rem; border:1px solid #d1d5db; border-radius:8px; background:#fff; cursor:pointer; }
-		.um-btn-danger { background:#ef4444; color:#fff; border-color:#ef4444; }
-		select.role-select { padding:.35rem .5rem; border:1px solid #cbd5e1; border-radius:8px; }
-	  `;
-	  document.head.appendChild(style);
-
-	  // Ambil table yang SUDAH ada di halaman Anda (tanpa ubah markup)
-	  const table = document.querySelector("table");
-	  if (table) table.classList.add("um-table");
-
-	  // Pastikan ada <tbody> untuk render
-	  let tbody = table?.tBodies?.[0];
-	  if (!tbody && table) { tbody = document.createElement("tbody"); tbody.id = "usersTableBody"; table.appendChild(tbody); }
-
-	  // Render satu baris user
-	  function renderRow(tbody, id, u) {
-		const tr = document.createElement("tr");
-		const created = u.createdAt?.toDate?.() ? u.createdAt.toDate().toLocaleString() : '-';
-		const status = u.disabled ? "Disabled" : "Active";
-
-		const tdName = document.createElement("td"); tdName.textContent = u.displayName || '-';
-		const tdEmail = document.createElement("td"); tdEmail.textContent = u.email || '-';
-
-		const tdRole = document.createElement("td");
-		const sel = document.createElement("select");
-		sel.className = "role-select";
-		sel.setAttribute("data-uid", id);
-		["viewer","contributor","admin"].forEach(r => {
-		  const opt = document.createElement("option");
-		  opt.value = r; opt.textContent = r;
-		  if (u.role === r) opt.selected = true;
-		  sel.appendChild(opt);
-		});
-		tdRole.appendChild(sel);
-
-		const tdCreated = document.createElement("td"); tdCreated.textContent = created;
-		const tdStatus = document.createElement("td"); tdStatus.textContent = status;
-
-		const tdActions = document.createElement("td");
-		const btn = document.createElement("button");
-		btn.className = "um-btn " + (u.disabled ? "" : "um-btn-danger");
-		btn.textContent = u.disabled ? "Enable" : "Disable";
-		btn.setAttribute("data-action", u.disabled ? "enable" : "disable");
-		btn.setAttribute("data-uid", id);
-		tdActions.appendChild(btn);
-
-		tr.append(tdName, tdEmail, tdRole, tdCreated, tdStatus, tdActions);
-		tbody.appendChild(tr);
-	  }
-
-	  // Realtime list
-	  if (tbody) {
-		const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
-		onSnapshot(q, (snap) => {
-		  tbody.innerHTML = "";
-		  snap.forEach(docSnap => renderRow(tbody, docSnap.id, docSnap.data()));
-		});
-	  }
-
-	  // Ubah role
-	  document.addEventListener("change", async (e) => {
-		const sel = e.target.closest(".role-select");
-		if (!sel) return;
-		const uid = sel.getAttribute("data-uid");
-		const role = sel.value;
-
-		try {
-		  if (setUserRoleCF) {
-			await setUserRoleCF({ uid, role });
-		  } else {
-			await updateDoc(doc(db, "users", uid), { role, updatedAt: serverTimestamp() });
-			alert("Role diperbarui (fallback Firestore). Disarankan aktifkan Cloud Functions.");
-		  }
-		} catch (err) {
-		  console.error(err);
-		  alert("Gagal mengubah role: " + (err.message || err));
-		}
-	  });
-
-	  // Disable/Enable
-	  document.addEventListener("click", async (e) => {
-		const btn = e.target.closest("button[data-action]");
-		if (!btn) return;
-		const uid = btn.getAttribute("data-uid");
-		const disabled = btn.getAttribute("data-action") === "disable";
-
-		try {
-		  if (setUserDisabledCF) {
-			await setUserDisabledCF({ uid, disabled });
-		  } else {
-			await updateDoc(doc(db, "users", uid), { disabled, updatedAt: serverTimestamp() });
-			alert("Firestore updated; akun Auth belum berubah. Aktifkan Cloud Functions.");
-		  }
-		} catch (err) {
-		  console.error(err);
-		  alert("Gagal mengubah status user: " + (err.message || err));
-		}
-	  });
-
-	  // Intersep tautan Logout (teks)
-	  document.addEventListener("click", (e) => {
-		const a = e.target.closest("a");
-		if (!a) return;
-		if (/logout/i.test(a.textContent)) {
-		  e.preventDefault();
-		  signOut(auth).then(() => (window.location.href = "/login_main.html"))
-					   .catch(err => alert("Gagal logout: " + err.message));
-		}
-	  });
-
-	  // Badge admin kecil
-	  onAuthStateChanged(auth, (user) => {
-		if (!user) return;
-		const b = document.createElement("div");
-		b.textContent = "Admin: " + (user.displayName || user.email || user.uid);
-		Object.assign(b.style, { position:"fixed", right:"12px", top:"12px", background:"#111827", color:"#fff", padding:"6px 10px", borderRadius:"10px", fontSize:"12px", zIndex:9999 });
-		document.body.appendChild(b);
-	  });
-	</script>
-
 </body>
-
 </html>
