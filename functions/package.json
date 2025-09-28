@@ -4,9 +4,7 @@
   "private": true,
   "main": "index.js",
   "type": "commonjs",
-  "engines": {
-    "node": "20"
-  },
+  "engines": { "node": "20" },
   "scripts": {
     "start": "firebase emulators:start --only functions",
     "serve": "firebase emulators:start --only functions",
