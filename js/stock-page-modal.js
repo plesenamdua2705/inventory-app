@@ -1,25 +1,26 @@
 // /js/stock-page-modal.js
-import { auth, db } from "./firebase-init.js"; 
-import { 
-  collection, addDoc, updateDoc, deleteDoc, doc, getDoc, 
-  serverTimestamp, query, orderBy, onSnapshot 
-} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js"; 
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js"; 
+import { auth, db } from "./firebase-init.js";
+import {
+  collection, addDoc, updateDoc, deleteDoc, doc, getDoc,
+  serverTimestamp, query, orderBy, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 
 /**
- * Inisialisasi halaman stok (CRUD + Export + Search + Pagination + Sorting 3-state).
+ * Inisialisasi halaman stok (CRUD + Export + Search + Pagination + Sorting 3-state + Tooltip).
  * @param {Object} cfg
  * @param {string} cfg.collectionName
  * @param {string} cfg.tableSelector
  * @param {Array}  cfg.fields
- * @param {function} [cfg.computeTotals]
+ *   Contoh: { key:'materialNumber', label:'Material Number', type:'text', required:true }
+ * @param {function} [cfg.computeTotals] - (docData) => number|string untuk kolom "Total" (opsional)
  * @param {string}   [cfg.loginUrl='/login_main.html']
  * @param {Object}   [cfg.ui]
  *   @param {'lg'|'xl'|'full'} [cfg.ui.size='xl']
  *   @param {1|2|3}            [cfg.ui.columns=1]
  *   @param {number}           [cfg.ui.maxWidth=1200]
- *   @param {Object}           [cfg.ui.controls] - selectors opsional {searchSelector,lengthSelector,infoSelector,pagerSelector}
- * @param {'all'|'filtered'}   [cfg.exportScope='all']
+ *   @param {Object}           [cfg.ui.controls] - selector opsional {searchSelector,lengthSelector,infoSelector,pagerSelector}
+ * @param {'all'|'filtered'}   [cfg.exportScope='all'] - ekspor semua data atau hanya hasil filter
  */
 export function initStockPageModal(cfg) {
   const {
@@ -56,7 +57,7 @@ export function initStockPageModal(cfg) {
 
   // ---------- Opsi UI ----------
   const size     = ui.size ?? "xl";   // 'lg' | 'xl' | 'full'
-  const columns  = Number(ui.columns ?? 1);
+  const columns  = Number(ui.columns ?? 1); // 1 | 2 | 3
   const maxWidth = ui.maxWidth ?? 1200;
   const includeTotals = (typeof computeTotals === "function");
 
@@ -76,11 +77,12 @@ export function initStockPageModal(cfg) {
       <div class="modal-dialog ${sizeClass}" style="max-width:${maxWidth}px; width:100%;">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Add New Stock</h5>
+            <h5 class="modal-title">Add New Data</h5>
             <button type="button" class="btn-close" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div id="${MODAL_ID}-msg" class="alert alert-danger d-none mb-3"></div>
+            <!-- Dibungkus <form> agar bisa pakai reportValidity() -->
             <form id="${MODAL_ID}-form">
               <div id="${MODAL_ID}-fields" class="row g-3"></div>
             </form>
@@ -138,11 +140,46 @@ export function initStockPageModal(cfg) {
       .page-item.active .page-link { background:#0d6efd; color:#fff; border-color:#0d6efd; }
       .page-item.disabled .page-link { opacity:.5; pointer-events:none; }
 
-      /* Sorting header */
-      table thead th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
-      table thead th.sortable .sort-indicator { margin-left: .35rem; font-size: .75rem; opacity: .55; }
+      /* Sorting header + tooltip */
+      table thead th.sortable {
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+        position: relative; /* untuk tooltip */
+      }
+      table thead th.sortable .sort-indicator {
+        margin-left: .35rem;
+        font-size: .75rem;
+        opacity: .45; /* redup saat netral */
+        transition: opacity .12s ease-in-out;
+      }
       table thead th.sortable.active .sort-indicator { opacity: .95; }
       table thead th.sortable:hover { background: rgba(13,110,253,.06); }
+      table thead th.sortable:hover .sort-indicator { opacity: .8; }
+
+      /* Tooltip ringan */
+      table thead th.sortable[data-tip]::after {
+        content: attr(data-tip);
+        position: absolute;
+        bottom: 100%;               /* tampil di atas header; ganti ke top:100% untuk di bawah */
+        left: 0;
+        transform: translateY(-6px);
+        background: rgba(33,37,41,.95);
+        color: #fff;
+        padding: .25rem .5rem;
+        border-radius: .25rem;
+        font-size: .75rem;
+        line-height: 1;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity .12s ease-out, transform .12s ease-out;
+        z-index: 12;
+      }
+      table thead th.sortable:hover::after {
+        opacity: .95;
+        transform: translateY(-8px);
+      }
     `;
     document.head.appendChild(style);
   })();
@@ -194,21 +231,22 @@ export function initStockPageModal(cfg) {
         const val  = (data?.[f.key] ?? "");
         const placeholder = f.placeholder ? `placeholder="${f.placeholder}"` : "";
         const auto = f.autocomplete ? `autocomplete="${f.autocomplete}"` : `autocomplete="off"`;
+        const safeVal = (type === 'number') ? String(val ?? "") : String(val ?? "").replace(/"/g, '&quot;');
         return `
           <div class="${colClass}">
             <label for="${id}" class="form-label">${f.label}${f.required ? " *" : ""}</label>
             <input id="${id}" name="${id}" type="${type}" class="form-control" ${req} ${placeholder} ${auto}
-                   value="${(type==='number') ? String(val ?? "") : String(val ?? "").replace(/"/g, '"')}">
+                   value="${safeVal}">
           </div>
         `;
       }).join("")}
     `;
   }
 
-  // ---------- Validasi form (required) ----------
+  // ---------- Validasi (required) ----------
   function validateForm() {
     if (!formEl) return true;
-    // Trim kolom teks yang required + pesan kustom
+    // Trim kolom text required + pesan kustom
     for (const f of fields) {
       if (!f.required) continue;
       const el = document.getElementById(`${MODAL_ID}-${f.key}`);
@@ -219,7 +257,7 @@ export function initStockPageModal(cfg) {
       if (!el.value) { el.setCustomValidity("Kolom wajib diisi"); }
     }
     const ok = formEl.reportValidity();
-    // Hapus pesan kustom agar tidak menahan input setelah diperbaiki
+    // Bersihkan pesan kustom agar tidak "mengunci"
     for (const f of fields) {
       const el = document.getElementById(`${MODAL_ID}-${f.key}`);
       if (el) el.setCustomValidity("");
@@ -237,6 +275,7 @@ export function initStockPageModal(cfg) {
     }
     return out;
   }
+
   async function createDoc(){
     const data = readFormValues();
     data.createdAt = serverTimestamp();
@@ -314,12 +353,23 @@ export function initStockPageModal(cfg) {
   const fieldMeta = {};
   for (const f of fields) fieldMeta[f.key] = (f.type || 'text');
 
+  // ---------- Tooltip helper ----------
+  function tipTextFor(key) {
+    if (!key || key === '__actions') return '';
+    if (sortKey === key) {
+      if (sortDir === 'asc')  return 'Urut naik ▲ (klik: turun ▼, klik lagi: reset ↕)';
+      if (sortDir === 'desc') return 'Urut turun ▼ (klik: reset ↕)';
+    }
+    return 'Klik untuk urut naik ▲';
+  }
+
+  // ---------- Sorting header setup ----------
   function initHeaderSorting() {
     const thead = table.querySelector('thead');
     const row = thead?.querySelector('tr');
     if (!row) return; // tidak ada header; lewati
 
-    // Buat mapping kolom: semua fields -> (opsional) Total -> Actions
+    // Map kolom: semua fields -> (opsional) Total -> Actions
     colMap = [...fields.map(f => f.key)];
     if (includeTotals) colMap.push('__total');
     colMap.push('__actions');
@@ -329,34 +379,39 @@ export function initStockPageModal(cfg) {
 
     ths.forEach((th, idx) => {
       const key = colMap[idx];
-      // Skip bila index tidak ada di map atau kolom Actions
+
+      // Kolom non-sortable (Actions) / tidak terpetakan
       if (!key || key === '__actions') {
         th.classList.remove('sortable', 'active');
         th.removeAttribute('aria-sort');
         const ex = th.querySelector('.sort-indicator'); if (ex) ex.remove();
+        th.removeAttribute('data-tip');
         return;
       }
+
       th.classList.add('sortable');
       th.setAttribute('aria-sort', 'none');
 
-      // Tambahkan indikator (kosong saat none)
+      // Tambahkan indikator ikon (↕ saat none)
       let ind = th.querySelector('.sort-indicator');
       if (!ind) {
         ind = document.createElement('span');
         ind.className = 'sort-indicator';
-        ind.textContent = ''; 
         th.appendChild(ind);
       }
+      ind.textContent = '↕';
 
-      // Click handler: ASC -> DESC -> NONE
+      // Tooltip awal
+      th.setAttribute('data-tip', tipTextFor(key));
+
+      // Click handler: ASC → DESC → NONE
       th.addEventListener('click', () => {
         if (sortKey === key) {
           if (sortDir === 'asc') {
             sortDir = 'desc';
           } else if (sortDir === 'desc') {
-            // reset ke NONE
-            sortKey = null;
-            sortDir = 'asc'; // default untuk klik berikutnya
+            sortKey = null;       // reset ke NONE
+            sortDir = 'asc';      // default klik berikutnya
           } else {
             sortDir = 'asc';
           }
@@ -374,30 +429,41 @@ export function initStockPageModal(cfg) {
 
   function updateHeaderSortIndicators() {
     if (!thElems.length) return;
+
     thElems.forEach((th, idx) => {
       const key = colMap[idx];
       const ind = th.querySelector('.sort-indicator');
 
-      const isActive = key && key !== '__actions' && key === sortKey;
-      th.classList.toggle('active', !!isActive);
-
+      // Non-sortable
       if (!key || key === '__actions') {
         th.removeAttribute('aria-sort');
+        th.classList.remove('active');
         if (ind) ind.textContent = '';
+        th.removeAttribute('data-tip');
         return;
       }
 
-      if (sortKey === null) {
-        // NONE: semua kolom kembali ke aria-sort: none, tanpa indikator
+      const isActive = (sortKey !== null && key === sortKey);
+
+      if (!isActive) {
+        // NONE atau kolom lain yang tidak aktif
+        th.classList.remove('active');
         th.setAttribute('aria-sort', 'none');
-        if (ind) ind.textContent = '';
-      } else if (isActive) {
-        th.setAttribute('aria-sort', sortDir === 'asc' ? 'ascending' : 'descending');
-        if (ind) ind.textContent = (sortDir === 'asc') ? '▲' : '▼';
-      } else {
-        th.setAttribute('aria-sort', 'none');
-        if (ind) ind.textContent = '';
+        if (ind) ind.textContent = '↕';
+        th.setAttribute('data-tip', tipTextFor(key));
+        return;
       }
+
+      // Aktif: ▲ / ▼ sesuai arah
+      th.classList.add('active');
+      if (sortDir === 'asc') {
+        th.setAttribute('aria-sort', 'ascending');
+        if (ind) ind.textContent = '▲';
+      } else {
+        th.setAttribute('aria-sort', 'descending');
+        if (ind) ind.textContent = '▼';
+      }
+      th.setAttribute('data-tip', tipTextFor(key));
     });
   }
 
@@ -416,7 +482,7 @@ export function initStockPageModal(cfg) {
       const n = Number(v);
       return Number.isFinite(n) ? n : 0;
     }
-    // 'date' sudah format YYYY-MM-DD -> leksikal sudah benar
+    // 'date' diasumsikan string "YYYY-MM-DD" -> leksikal sudah benar
     return String(v).toLowerCase();
   }
 
@@ -427,8 +493,7 @@ export function initStockPageModal(cfg) {
       const va = getSortValue(a, sortKey);
       const vb = getSortValue(b, sortKey);
       if (va === vb) return 0;
-      // Missing value diurutkan di bawah (akhir) pada asc, di atas pada desc
-      if (va === '' || va === null) return (dir === 1 ? 1 : -1);
+      if (va === '' || va === null) return (dir === 1 ? 1 : -1); // kosong di bawah saat asc
       if (vb === '' || vb === null) return (dir === 1 ? -1 : 1);
       if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
       return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * dir;
@@ -440,7 +505,7 @@ export function initStockPageModal(cfg) {
     latestDocs = docs;
     currentPage = 1;
     if (!headerInitDone) initHeaderSorting();
-    // saat data baru datang, indikator header tetap; sorting diterapkan di bawah
+    updateHeaderSortIndicators(); // pastikan ikon/tooltip sesuai state
     applyFilterAndPaginate();
   }
 
@@ -464,7 +529,7 @@ export function initStockPageModal(cfg) {
       });
     }
 
-    // >>> Sorting setelah filter (atau NONE kalau sortKey null) <<<
+    // Sorting setelah filter (atau NONE jika sortKey null)
     applySort();
 
     const totalPages = getTotalPages();
@@ -529,11 +594,12 @@ export function initStockPageModal(cfg) {
   function renderRows(docArray) {
     tbody.innerHTML = "";
     const can = canWrite();
+
     for (const d of docArray) {
       const data = d.data();
       const tr = document.createElement("tr");
 
-      // kolom data sesuai urutan fields
+      // Kolom data sesuai urutan fields
       for (const f of fields) {
         const td = document.createElement("td");
         const val = data?.[f.key] ?? "";
@@ -541,14 +607,14 @@ export function initStockPageModal(cfg) {
         tr.appendChild(td);
       }
 
-      // kolom Total (opsional)
+      // Kolom Total (opsional)
       if (includeTotals) {
         const tdT = document.createElement("td");
         tdT.textContent = computeTotals(data);
         tr.appendChild(tdT);
       }
 
-      // kolom Aksi
+      // Kolom Aksi
       const tdA = document.createElement("td");
       if (can) {
         const btnE = document.createElement("button");
@@ -579,6 +645,7 @@ export function initStockPageModal(cfg) {
         tdA.appendChild(actionsWrap);
       }
       tr.appendChild(tdA);
+
       tbody.appendChild(tr);
     }
   }
@@ -594,7 +661,7 @@ export function initStockPageModal(cfg) {
   function openCreate() {
     mode = "create";
     editingId = null;
-    modalTitle.textContent = "Add New Stock";
+    modalTitle.textContent = "Add New Data";
     buildForm({});
     msgEl.classList.add("d-none");
     showModal();
