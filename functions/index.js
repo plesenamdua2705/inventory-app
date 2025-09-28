@@ -5,15 +5,18 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 const db = admin.firestore();
 
-// Cek role admin pada pemanggil
 async function requireAdmin(context) {
-  if (!context.auth) throw new HttpsError('unauthenticated', 'Harus login.');
+  if (!context.auth) {
+    throw new HttpsError('unauthenticated', 'Harus login.');
+  }
   const snap = await db.collection('users').doc(context.auth.uid).get();
   const role = snap.exists ? snap.data().role : 'viewer';
-  if (role !== 'admin') throw new HttpsError('permission-denied', 'Admin only.');
+  if (role !== 'admin') {
+    throw new HttpsError('permission-denied', 'Admin only.');
+  }
 }
 
-// Set region Jakarta untuk latensi rendah
+// Set region ke Jakarta untuk latensi rendah (opsional tapi direkomendasikan)
 const region = { region: 'asia-southeast2' };
 
 exports.adminListUsers = onCall(region, async (req) => {
@@ -21,9 +24,9 @@ exports.adminListUsers = onCall(region, async (req) => {
   const list = await admin.auth().listUsers(1000);
   const fsUsersSnap = await db.collection('users').get();
   const roles = {};
-  fsUsersSnap.forEach(d => (roles[d.id] = d.data()));
+  fsUsersSnap.forEach(d => roles[d.id] = d.data());
 
-  return list.users.map(u => ({
+  const data = list.users.map(u => ({
     uid: u.uid,
     email: u.email || '',
     displayName: u.displayName || '',
@@ -32,6 +35,7 @@ exports.adminListUsers = onCall(region, async (req) => {
     lastSignInTime: u.metadata?.lastSignInTime || '',
     role: roles[u.uid]?.role || 'viewer'
   }));
+  return data;
 });
 
 exports.adminCreateUser = onCall(region, async (req) => {
@@ -75,9 +79,12 @@ exports.adminUpdateUser = onCall(region, async (req) => {
     updatesFs.role = role;
     await admin.auth().setCustomUserClaims(uid, { role });
   }
-
-  if (Object.keys(updatesAuth).length) await admin.auth().updateUser(uid, updatesAuth);
-  if (Object.keys(updatesFs).length) await db.collection('users').doc(uid).set(updatesFs, { merge: true });
+  if (Object.keys(updatesAuth).length) {
+    await admin.auth().updateUser(uid, updatesAuth);
+  }
+  if (Object.keys(updatesFs).length) {
+    await db.collection('users').doc(uid).set(updatesFs, { merge: true });
+  }
   return { ok: true };
 });
 
