@@ -1,10 +1,10 @@
 // /js/firebase-init.js
-// Gunakan Modular SDK (CDN)
+// Modular SDK (CDN)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
 import { getAuth /* setPersistence dipindah ke halaman login */ } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
-// -- PASTIKAN CONFIG PERSIS DARI FIREBASE CONSOLE --
+// -- FIREBASE CONSOLE --
 const firebaseConfig = {
   apiKey: "AIzaSyAyC23ke5IEIoz5FpS41OiT1wyBSKaRDVk",
   authDomain: "e-stock-ff767.firebaseapp.com",
@@ -39,3 +39,4 @@ export async function ensureUserDoc(user) {
 // (Opsional) listener untuk debugging
 // import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 // onAuthStateChanged(auth, (user) => { console.log('Auth:', !!user, user?.uid); });
+
