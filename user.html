@@ -239,6 +239,7 @@
 
 	<!-- Script Module -->
 	<script type="module">
+		'use strict';
       import { guardPage } from '/js/auth-guard.js';
 	  import { mountUserMenu } from '/js/user-menu.js';
 	  import { app, auth, db } from '/js/firebase-init.js';
@@ -264,9 +265,6 @@
 		    aboutUrl: "./about.html",
 		    loginUrl: "./login_main.html",
 		});
-
-    <script type="module">
-	  'use strict';
 
 	  /***********************
 	   * Ambil referensi tabel EXISTING (tanpa ubah markup)
