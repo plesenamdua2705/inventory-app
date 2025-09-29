@@ -264,258 +264,152 @@
 		});		
 
 	// 3) User Management Enhancer
-	// Selector/ID elemen agar tidak bentrok dengan CSS Mas
-	  const UI = {
-	    btnAdd:            '#btnAddUser, [data-action="add-user"]',
-	    modal:             '#addUserModal',
-	    btnCloseModal:     '#btnCloseModal',
-	    btnCloseModal2:    '#btnCloseModal2',
-	    formAdd:           '#addUserForm',
-	    table:             '#userTable',
-	    tableBody:         '#userTable tbody',
-	    hiddenClass:       'hidden'       // sesuaikan kalau CSS Mas pakai kelas lain (mis. 'd-none')
-	  };
 	
-	  /***********************
-	   * 3) INISIALISASI APP
-	   ***********************/
-	  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-	  const auth = getAuth(app);
-	  const db   = getFirestore(app);
-	
-	  // Helper DOM
-	  const $ = (sel, parent=document) => parent.querySelector(sel);
-	  const $$ = (sel, parent=document) => Array.from(parent.querySelectorAll(sel));
-	
-	  // Modal helper: dukung 2 gaya → toggle class + fallback display
-	  const Modal = {
-	    get el() { return $(UI.modal); },
-	    show() {
-	      const el = this.el; if (!el) return;
-	      try { el.classList.remove(UI.hiddenClass); } catch {}
-	      el.style.display = 'block';
-	    },
-	    hide() {
-	      const el = this.el; if (!el) return;
-	      try { el.classList.add(UI.hiddenClass); } catch {}
-	      el.style.display = 'none';
-	    }
-	  };
-	
-	  // Redirect helper
-	  const go = (href) => { window.location.href = href; };
-	
-	  /***********************
-	   * 4) GUARD ADMIN (roles/{uid}.role === 'admin')
-	   ***********************/
-	  onAuthStateChanged(auth, async (user) => {
-	    if (!user) { go('login_main.html'); return; }
-	    try {
-	      const rSnap = await getDoc(doc(db, 'roles', user.uid));
-	      const role = rSnap.exists() ? rSnap.data().role : null;
-	      if (role !== 'admin') { go('index.html'); return; }
-	      // DOM siap?
-	      if (document.readyState === 'loading') {
-	        window.addEventListener('DOMContentLoaded', initPage, { once: true });
-	      } else {
-	        initPage();
-	      }
-	    } catch (err) {
-	      console.error(err);
-	      alert('Gagal memuat hak akses.');
-	      go('index.html');
-	    }
-	  });
-	
-	  /***********************
-	   * 5) LOGIKA HALAMAN
-	   ***********************/
-	  function initPage() {
-	    const btnAdd   = $(UI.btnAdd);
-	    const form     = $(UI.formAdd);
-	    const btnClose = $(UI.btnCloseModal);
-	    const btnClose2= $(UI.btnCloseModal2);
-	    const table    = $(UI.table);
-	    const tbody    = $(UI.tableBody) || (table ? table.appendChild(document.createElement('tbody')) : null);
-	
-	    // --- Proteksi: pastikan elemen ada
-	    if (!btnAdd || !form || !table || !tbody) {
-	      console.warn('Elemen penting tidak ditemukan. Cek ID/selector di HTML.');
-	    }
-	
-	    // --- Event tombol modal
-	    btnAdd?.addEventListener('click', () => Modal.show());
-	    btnClose?.addEventListener('click', () => Modal.hide());
-	    btnClose2?.addEventListener('click', () => Modal.hide());
-	
-	    // --- Realtime list users (skip deleted)
-	    const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-	    onSnapshot(qUsers, (snap) => {
-	      tbody.innerHTML = '';
-	      snap.forEach((d) => {
-	        const u = { id: d.id, ...d.data() };
-	        if (u.deletedAt) return; // soft-deleted hidden
-	        const tr = document.createElement('tr');
-	
-	        const role = u.role || 'viewer';
-	        // simpan prev untuk rollback kalau update gagal
-	        const roleSelect = `
-	          <select class="role-select" data-uid="${u.id}" data-prev="${role}">
-	            <option value="viewer" ${role==='viewer'?'selected':''}>Viewer</option>
-	            <option value="contributor" ${role==='contributor'?'selected':''}>Contributor</option>
-	            <option value="admin" ${role==='admin'?'selected':''}>Admin</option>
-	          </select>
-	        `;
-	
-	        tr.innerHTML = `
-	          <td>${u.email ?? '-'}</td>
-	          <td>${u.displayName ?? '-'}</td>
-	          <td>${roleSelect}</td>
-	          <td>${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleString() : '-'}</td>
-	          <td>
-	            <button class="btn-reset"  data-email="${u.email}">Send Reset Password</button>
-	            <button class="btn-toggle" data-uid="${u.id}" data-disabled="loading">Loading...</button>
-	            <button class="btn-delete" data-uid="${u.id}">Delete</button>
-	          </td>
-	        `;
-	        tbody.appendChild(tr);
-	        // set label Disable/Enable berdasarkan roles/{uid}.disabled
-	        setToggleButtonState(u.id, tr.querySelector('.btn-toggle'));
-	      });
-	    });
-	
-	    // --- Action: Role dropdown
-	    document.addEventListener('change', async (e) => {
-	      const el = e.target;
-	      if (!el.matches('.role-select')) return;
-	      const uid  = el.dataset.uid;
-	      const role = el.value;
-	      const prev = el.dataset.prev || 'viewer';
-	      try {
-	        const batch = writeBatch(db);
-	        batch.set(doc(db, 'roles', uid), { role }, { merge: true });
-	        batch.set(doc(db, 'users', uid), { role }, { merge: true });
-	        await batch.commit();
-	        el.dataset.prev = role;
-	      } catch (err) {
-	        console.error(err);
-	        alert('Gagal update role. Cek Rules/izin.');
-	        el.value = prev; // rollback UI
-	      }
-	    });
-	
-	    // --- Action: Reset / Disable-Enable / Delete
-	    tbody.addEventListener('click', async (e) => {
-	      const t = e.target;
-	
-	      // Send Reset Password
-	      if (t.classList.contains('btn-reset')) {
-	        const email = t.dataset.email;
-	        try {
-	          await sendPasswordResetEmail(auth, email);
-	          alert('Email reset password dikirim.');
-	        } catch (err) {
-	          console.error(err);
-	          alert('Gagal mengirim reset password.');
-	        }
-	      }
-	
-	      // Toggle Disable/Enable (Firestore flag)
-	      if (t.classList.contains('btn-toggle')) {
-	        const uid = t.dataset.uid;
-	        const current = t.dataset.disabled;
-	        // loading? ambil status dulu bila belum ada
-	        let disabled = (current === 'true');
-	        if (current === 'loading') {
-	          const rs = await getDoc(doc(db, 'roles', uid));
-	          disabled = !!(rs.exists() && rs.data().disabled);
-	        }
-	        const nextDisabled = !disabled;
-	        try {
-	          const batch = writeBatch(db);
-	          batch.set(doc(db, 'roles', uid), { disabled: nextDisabled }, { merge: true });
-	          batch.set(doc(db, 'users', uid), { disabled: nextDisabled }, { merge: true });
-	          await batch.commit();
-	          t.textContent = nextDisabled ? 'Enable' : 'Disable';
-	          t.dataset.disabled = String(nextDisabled);
-	          alert(nextDisabled ? 'User di-disable (akses data diblokir Rules).' : 'User di-enable.');
-	        } catch (err) {
-	          console.error(err);
-	          alert('Gagal mengubah status user.');
-	        }
-	      }
-	
-	      // Soft Delete (hapus dari listing, TIDAK hapus akun Auth)
-	      if (t.classList.contains('btn-delete')) {
-	        const uid = t.dataset.uid;
-	        if (!confirm('Delete user ini? (Soft delete: akun Auth TIDAK terhapus)')) return;
-	        try {
-	          await updateDoc(doc(db, 'users', uid), { deletedAt: serverTimestamp() });
-	          await setDoc(doc(db, 'roles', uid), { deleted: true }, { merge: true });
-	          alert('User dihapus (soft delete).');
-	        } catch (err) {
-	          console.error(err);
-	          alert('Gagal menghapus user.');
-	        }
-	      }
-	    });
-	
-	    // --- Tambah user (secondary app supaya admin tidak logout)
-	    form?.addEventListener('submit', async (e) => {
-	      e.preventDefault();
-	      const email = form.email?.value?.trim();
-	      const password = form.password?.value;
-	      const displayName = form.displayName?.value?.trim();
-	      const role = form.querySelector('input[name="role"]:checked')?.value || 'viewer';
-	
-	      if (!email || !password) return alert('Email & password wajib diisi');
-	
-	      // Secondary app
-	      const secondaryName = 'SecondaryAuth';
-	      const secondaryApp = initializeApp(firebaseConfig, secondaryName);
-	      const secondaryAuth = getAuth(secondaryApp);
-	
-	      try {
-	        // create akan auto sign-in DI secondaryAuth (bukan sesi admin)
-	        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-	        const newUser = cred.user;
-	        if (displayName) { await updateProfile(newUser, { displayName }); }
-	
-	        const batch = writeBatch(db);
-	        batch.set(doc(db, 'roles', newUser.uid), { role, disabled: false }, { merge: true });
-	        batch.set(doc(db, 'users', newUser.uid), {
-	          email, displayName: displayName || '', role, createdAt: serverTimestamp(), disabled: false
-	        }, { merge: true });
-	        await batch.commit();
-	
-	        await signOut(secondaryAuth);
-	        await deleteApp(secondaryApp);
-	
-	        alert('User dibuat. Minta user login dan segera ganti password.');
-	        form.reset();
-	        Modal.hide();
-	      } catch (err) {
-	        console.error(err);
-	        alert(`Gagal membuat user: ${err?.code || err?.message || err}`);
-	        try { await signOut(secondaryAuth); await deleteApp(secondaryApp); } catch {}
-	      }
-	    });
-	  }
-	
-	  // Ambil & set label tombol Disable/Enable
-	  async function setToggleButtonState(uid, buttonEl) {
-	    if (!buttonEl) return;
-	    try {
-	      const rs = await getDoc(doc(db, 'roles', uid));
-	      const disabled = !!(rs.exists() && rs.data().disabled);
-	      buttonEl.textContent = disabled ? 'Enable' : 'Disable';
-	      buttonEl.dataset.disabled = String(disabled);
-	    } catch {
-	      buttonEl.textContent = 'Disable';
-	      buttonEl.dataset.disabled = 'false';
-	    }
-	  }
-			
+// ------ Guard admin (cek roles/{uid})
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'login_main.html'; return; }
+    const rSnap = await getDoc(doc(db, 'roles', user.uid));
+    if (!rSnap.exists() || rSnap.data().role !== 'admin') {
+      window.location.href = 'index.html'; // non-admin tidak boleh masuk
+      return;
+    }
+    initPage();
+  });
+
+  function showModal() { document.getElementById('addUserModal').style.display = 'block'; }
+  function hideModal() { document.getElementById('addUserModal').style.display = 'none'; }
+
+  function initPage() {
+    const btnAdd = document.getElementById('btnAddUser');
+    const btnClose = document.getElementById('btnCloseModal');
+    const btnClose2 = document.getElementById('btnCloseModal2');
+    const form = document.getElementById('addUserForm');
+    const tbody = document.querySelector('#userTable tbody');
+
+    btnAdd?.addEventListener('click', showModal);
+    btnClose?.addEventListener('click', hideModal);
+    btnClose2?.addEventListener('click', hideModal);
+
+    // ---- Realtime Listing users (skip yang deleted)
+    const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    onSnapshot(qUsers, (snap) => {
+      tbody.innerHTML = '';
+      snap.forEach(d => {
+        const u = { id: d.id, ...d.data() };
+        if (u.deletedAt) return; // skip soft-deleted
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.email ?? '-'}</td>
+          <td>${u.displayName ?? '-'}</td>
+          <td>${u.role ?? '-'}</td>
+          <td>${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleString() : '-'}</td>
+          <td>
+            <button class="btn-reset" data-email="${u.email}">Send Reset Password</button>
+            <button class="btn-toggle" data-uid="${u.id}">Loading...</button>
+            <button class="btn-delete" data-uid="${u.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+        setToggleButtonState(u.id, tr.querySelector('.btn-toggle'));
+      });
+    });
+
+    // Set label Disable/Enable berdasarkan roles/{uid}.disabled
+    async function setToggleButtonState(uid, buttonEl) {
+      try {
+        const rs = await getDoc(doc(db, 'roles', uid));
+        const disabled = !!(rs.exists() && rs.data().disabled);
+        buttonEl.textContent = disabled ? 'Enable' : 'Disable';
+        buttonEl.dataset.disabled = String(disabled);
+      } catch {
+        buttonEl.textContent = 'Disable';
+        buttonEl.dataset.disabled = 'false';
+      }
+    }
+
+    // ---- Actions
+    tbody.addEventListener('click', async (e) => {
+      const t = e.target;
+      if (t.classList.contains('btn-reset')) {
+        const email = t.dataset.email;
+        try {
+          await sendPasswordResetEmail(auth, email);
+          alert('Email reset password dikirim.');
+        } catch (err) {
+          console.error(err);
+          alert('Gagal mengirim reset password.');
+        }
+      }
+
+      if (t.classList.contains('btn-toggle')) {
+        const uid = t.dataset.uid;
+        const currentDisabled = t.dataset.disabled === 'true';
+        const nextDisabled = !currentDisabled;
+        try {
+          const batch = writeBatch(db);
+          batch.set(doc(db,'roles', uid), { disabled: nextDisabled }, { merge: true });
+          batch.set(doc(db,'users', uid), { disabled: nextDisabled }, { merge: true });
+          await batch.commit();
+          t.textContent = nextDisabled ? 'Enable' : 'Disable';
+          t.dataset.disabled = String(nextDisabled);
+          alert(nextDisabled ? 'User di-disable (akses Firestore akan ditolak).' : 'User di-enable.');
+        } catch (err) {
+          console.error(err);
+          alert('Gagal mengubah status user.');
+        }
+      }
+
+      if (t.classList.contains('btn-delete')) {
+        const uid = t.dataset.uid;
+        if (!confirm('Delete user ini? (Soft delete, akun Auth tidak terhapus)')) return;
+        try {
+          await updateDoc(doc(db,'users', uid), { deletedAt: serverTimestamp() });
+          // (opsional) tandai roles juga
+          await setDoc(doc(db,'roles', uid), { deleted: true }, { merge: true });
+          alert('User dihapus (soft delete).');
+        } catch (err) {
+          console.error(err);
+          alert('Gagal menghapus user.');
+        }
+      }
+    });
+
+    // ---- Add User (secondary app supaya admin tidak logout)
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const displayName = form.displayName.value.trim();
+      const role = form.querySelector('input[name="role"]:checked')?.value || 'viewer';
+      if (!email || !password) return alert('Email dan password wajib diisi');
+
+      const secondaryName = 'SecondaryAuth';
+      const secondaryApp = initializeApp(firebaseConfig, secondaryName);
+      const secondaryAuth = getAuth(secondaryApp);
+
+      try {
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password); // auto-login di secondary
+        if (displayName) await updateProfile(cred.user, { displayName });
+
+        const batch = writeBatch(db);
+        batch.set(doc(db,'roles', cred.user.uid), { role, disabled: false }, { merge: true });
+        batch.set(doc(db,'users', cred.user.uid), {
+          email, displayName: displayName || '', role, createdAt: serverTimestamp(), disabled: false
+        }, { merge: true });
+        await batch.commit();
+
+        await signOut(secondaryAuth);
+        await deleteApp(secondaryApp);
+
+        alert('User dibuat. Minta user login dan segera ganti password.');
+        form.reset(); hideModal();
+      } catch (err) {
+        console.error(err);
+        alert(`Gagal membuat user: ${err?.code || err?.message || err}`);
+        try { await signOut(secondaryAuth); await deleteApp(secondaryApp); } catch {}
+      }
+    });
+  }	
 	</script>
 </body>
 </html>
