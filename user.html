@@ -145,17 +145,16 @@
                         <div class="card-header py-3">
 						
 							<!-- Modal Add/Edit User (tanpa password) -->
-							<button id="btnAdd" type="button" class="btn btn-primary mb-1" data-toggle="modal" data-target="#addSouvenirModal">Add New User</button>
-							
-							
-							<div class="modal fade" id="modalUser" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
+							<button id="btnAddUse" type="button" class="btn btn-primary mb-1" data-toggle="modal">Add New User</button>
+														
+							<div id="addUserModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
 								<div class="modal-dialog" role="document">
-									<form id="formUser">
+									<form id="addUserForm">
 										<div class="modal-content">
 											<div class="modal-header">
 												<h5 class="modal-title" id="modalTitle">Add New User</h5>
 												<input type="hidden" name="uid" />
-												<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												<button id="btnCloseModal" type="button" class="close" data-dismiss="modal" aria-label="Close">
 													<span aria-hidden="true">&times;</span>
 												</button>
 											</div>
@@ -185,7 +184,7 @@
 											</div>
 										</div>
 										<button type="submit">Create</button>
-										<button type="button" id="btnCloseModal">Close</button>
+										<button type="button" id="btnCloseModal2">Close</button>
 									</form>
 								</div>
 							</div>
@@ -201,7 +200,7 @@
 											<th>Nama</th>
 											<th>Role</th>
 											<th>Dibuat</th>
-											<th style="width:220px;">Actions</th>
+											<th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -266,154 +265,152 @@
 
 	// 3) User Management Enhancer
 
-	  // --- Guard: hanya admin boleh akses halaman ini (cek dari Firestore roles/{uid})
-	  onAuthStateChanged(auth, async (user) => {
-		if (!user) {
-		  window.location.href = 'login_main.html';
-		  return;
-		}
-		// cek role dari Firestore
-		const roleDoc = await (await import("https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js"))
-		  .getDoc(doc(db, 'roles', user.uid));
-		if (!roleDoc.exists() || roleDoc.data().role !== 'admin') {
-		  window.location.href = 'index.html';
-		  return;
-		}
-		// Jika admin, mulai load data
-		startUserMgmt();
-	  });
+	  
+// ------ Guard admin (cek roles/{uid})
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'login_main.html'; return; }
+    const rSnap = await getDoc(doc(db, 'roles', user.uid));
+    if (!rSnap.exists() || rSnap.data().role !== 'admin') {
+      window.location.href = 'index.html'; // non-admin tidak boleh masuk
+      return;
+    }
+    initPage();
+  });
 
-	  function openModal() { document.getElementById('addUserModal').style.display = 'block'; }
-	  function closeModal() { document.getElementById('addUserModal').style.display = 'none'; }
+  function showModal() { document.getElementById('addUserModal').style.display = 'block'; }
+  function hideModal() { document.getElementById('addUserModal').style.display = 'none'; }
 
-	  function startUserMgmt() {
-		const btnAdd = document.getElementById('btnAddUser');
-		const btnClose = document.getElementById('btnCloseModal');
-		const form = document.getElementById('addUserForm');
-		const tbody = document.querySelector('#userTable tbody');
+  function initPage() {
+    const btnAdd = document.getElementById('btnAddUser');
+    const btnClose = document.getElementById('btnCloseModal');
+    const btnClose2 = document.getElementById('btnCloseModal2');
+    const form = document.getElementById('addUserForm');
+    const tbody = document.querySelector('#userTable tbody');
 
-		btnAdd?.addEventListener('click', openModal);
-		btnClose?.addEventListener('click', closeModal);
+    btnAdd?.addEventListener('click', showModal);
+    btnClose?.addEventListener('click', hideModal);
+    btnClose2?.addEventListener('click', hideModal);
 
-		// Realtime listing users
-		const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-		onSnapshot(q, (snap) => {
-		  tbody.innerHTML = '';
-		  snap.forEach((d) => {
-			const u = { id: d.id, ...d.data() };
-			const tr = document.createElement('tr');
-			tr.innerHTML = `
-			  <td>${u.email ?? '-'}</td>
-			  <td>${u.displayName ?? '-'}</td>
-			  <td>
-				change-role
-				  <option value="viewer" ${u.role==='viewer'?'selected':''}>Viewer</option>
-				  <option value="contributor" ${u.role==='contributor'?'selected':''}>Contributor</option>
-				  <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-				</select>
-			  </td>
-			  <td>${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleString() : '-'}</td>
-			  <td>
-				send-resetKirim Reset</button>
-				<!-- Catatan: tanpa Admin SDK kita TIDAK bisa hapus akun Auth -->
-				<!-- delete-docHapus Data (Firestore)</button> -->
-			  </td>
-			`;
-			tbody.appendChild(tr);
-		  });
-		});
+    // ---- Realtime Listing users (skip yang deleted)
+    const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    onSnapshot(qUsers, (snap) => {
+      tbody.innerHTML = '';
+      snap.forEach(d => {
+        const u = { id: d.id, ...d.data() };
+        if (u.deletedAt) return; // skip soft-deleted
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.email ?? '-'}</td>
+          <td>${u.displayName ?? '-'}</td>
+          <td>${u.role ?? '-'}</td>
+          <td>${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleString() : '-'}</td>
+          <td>
+            <button class="btn-reset" data-email="${u.email}">Send Reset Password</button>
+            <button class="btn-toggle" data-uid="${u.id}">Loading...</button>
+            <button class="btn-delete" data-uid="${u.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+        setToggleButtonState(u.id, tr.querySelector('.btn-toggle'));
+      });
+    });
 
-		// Ganti role
-		document.addEventListener('change', async (e) => {
-		  const el = e.target;
-		  if (el.matches('select[data-action="change-role"]')) {
-			const uid = el.getAttribute('data-uid');
-			const role = el.value;
-			try {
-			  // Update roles/{uid} dan mirror ke users/{uid}
-			  const batch = writeBatch(db);
-			  batch.update(doc(db, 'roles', uid), { role });
-			  batch.update(doc(db, 'users', uid), { role });
-			  await batch.commit();
-			  alert('Role updated');
-			} catch (err) {
-			  console.error(err);
-			  alert('Gagal update role (periksa Rules/izin)');
-			}
-		  }
-		});
+    // Set label Disable/Enable berdasarkan roles/{uid}.disabled
+    async function setToggleButtonState(uid, buttonEl) {
+      try {
+        const rs = await getDoc(doc(db, 'roles', uid));
+        const disabled = !!(rs.exists() && rs.data().disabled);
+        buttonEl.textContent = disabled ? 'Enable' : 'Disable';
+        buttonEl.dataset.disabled = String(disabled);
+      } catch {
+        buttonEl.textContent = 'Disable';
+        buttonEl.dataset.disabled = 'false';
+      }
+    }
 
-		// Kirim reset password (opsional)
-		document.addEventListener('click', async (e) => {
-		  const btn = e.target;
-		  if (btn.matches('button[data-action="send-reset"]')) {
-			const email = btn.getAttribute('data-email');
-			try {
-			  await sendPasswordResetEmail(auth, email);
-			  alert('Email reset password telah dikirim.');
-			} catch (err) {
-			  console.error(err);
-			  alert('Gagal kirim reset password.');
-			}
-		  }
-		  if (btn.matches('button[data-action="delete-doc"]')) {
-			const uid = btn.getAttribute('data-uid');
-			if (confirm('Hapus data Firestore user ini? (Akun Auth TIDAK terhapus)')) {
-			  await updateDoc(doc(db, 'users', uid), { deletedAt: serverTimestamp() });
-			  alert('Ditandai terhapus (soft delete).');
-			}
-		  }
-		});
+    // ---- Actions
+    tbody.addEventListener('click', async (e) => {
+      const t = e.target;
+      if (t.classList.contains('btn-reset')) {
+        const email = t.dataset.email;
+        try {
+          await sendPasswordResetEmail(auth, email);
+          alert('Email reset password dikirim.');
+        } catch (err) {
+          console.error(err);
+          alert('Gagal mengirim reset password.');
+        }
+      }
 
-		// Tambah user baru (Auth lewat secondary app)
-		form?.addEventListener('submit', async (e) => {
-		  e.preventDefault();
-		  const email = form.email.value.trim();
-		  const password = form.password.value;
-		  const displayName = form.displayName.value.trim();
-		  const role = form.querySelector('input[name="role"]:checked')?.value || 'viewer';
+      if (t.classList.contains('btn-toggle')) {
+        const uid = t.dataset.uid;
+        const currentDisabled = t.dataset.disabled === 'true';
+        const nextDisabled = !currentDisabled;
+        try {
+          const batch = writeBatch(db);
+          batch.set(doc(db,'roles', uid), { disabled: nextDisabled }, { merge: true });
+          batch.set(doc(db,'users', uid), { disabled: nextDisabled }, { merge: true });
+          await batch.commit();
+          t.textContent = nextDisabled ? 'Enable' : 'Disable';
+          t.dataset.disabled = String(nextDisabled);
+          alert(nextDisabled ? 'User di-disable (akses Firestore akan ditolak).' : 'User di-enable.');
+        } catch (err) {
+          console.error(err);
+          alert('Gagal mengubah status user.');
+        }
+      }
 
-		  if (!email || !password) { alert('Email dan password wajib diisi'); return; }
+      if (t.classList.contains('btn-delete')) {
+        const uid = t.dataset.uid;
+        if (!confirm('Delete user ini? (Soft delete, akun Auth tidak terhapus)')) return;
+        try {
+          await updateDoc(doc(db,'users', uid), { deletedAt: serverTimestamp() });
+          // (opsional) tandai roles juga
+          await setDoc(doc(db,'roles', uid), { deleted: true }, { merge: true });
+          alert('User dihapus (soft delete).');
+        } catch (err) {
+          console.error(err);
+          alert('Gagal menghapus user.');
+        }
+      }
+    });
 
-		  // ---- Secondary app untuk mencegah sesi admin terganti
-		  const secondaryName = 'SecondaryAuth';
-		  const secondaryApp = initializeApp(firebaseConfig, secondaryName);
-		  const secondaryAuth = getAuth(secondaryApp);
+    // ---- Add User (secondary app supaya admin tidak logout)
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const displayName = form.displayName.value.trim();
+      const role = form.querySelector('input[name="role"]:checked')?.value || 'viewer';
+      if (!email || !password) return alert('Email dan password wajib diisi');
 
-		  try {
-			const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-			const newUser = cred.user; // saat ini login di secondaryAuth
+      const secondaryName = 'SecondaryAuth';
+      const secondaryApp = initializeApp(firebaseConfig, secondaryName);
+      const secondaryAuth = getAuth(secondaryApp);
 
-			// (opsional) set displayName di Auth user baru
-			if (displayName) {
-			  await updateProfile(newUser, { displayName });
-			}
+      try {
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password); // auto-login di secondary
+        if (displayName) await updateProfile(cred.user, { displayName });
 
-			// Catat data di Firestore (dengan sesi admin di app utama)
-			const batch = writeBatch(db);
-			batch.set(doc(db, 'roles', newUser.uid), { role });
-			batch.set(doc(db, 'users', newUser.uid), {
-			  email,
-			  displayName: displayName || '',
-			  role,
-			  createdAt: serverTimestamp()
-			});
-			await batch.commit();
+        const batch = writeBatch(db);
+        batch.set(doc(db,'roles', cred.user.uid), { role, disabled: false }, { merge: true });
+        batch.set(doc(db,'users', cred.user.uid), {
+          email, displayName: displayName || '', role, createdAt: serverTimestamp(), disabled: false
+        }, { merge: true });
+        await batch.commit();
 
-			// keluar dari secondary agar bersih
-			await signOut(secondaryAuth);
-			await deleteApp(secondaryApp);
+        await signOut(secondaryAuth);
+        await deleteApp(secondaryApp);
 
-			alert('User berhasil dibuat. Minta user login dan segera ganti password.');
-			form.reset();
-			closeModal();
-		  } catch (err) {
-			console.error(err);
-			alert(`Gagal membuat user: ${err?.code || err?.message || err}`);
-			try { await signOut(secondaryAuth); await deleteApp(secondaryApp); } catch {}
-		  }
-		});
-	  }						
+        alert('User dibuat. Minta user login dan segera ganti password.');
+        form.reset(); hideModal();
+      } catch (err) {
+        console.error(err);
+        alert(`Gagal membuat user: ${err?.code || err?.message || err}`);
+        try { await signOut(secondaryAuth); await deleteApp(secondaryApp); } catch {}
+      }
+    });
+  }					
 	</script>
 </body>
 </html>
