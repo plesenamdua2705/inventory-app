@@ -266,133 +266,259 @@
 		    loginUrl: "./login_main.html",
 		});
 
-	  /***********************
-	   * Ambil referensi tabel EXISTING (tanpa ubah markup)
-	   ***********************/
 	  
-	// 3) Ambil referensi table existing (tanpa ubah markup)
-	  const table = document.querySelector('table');
-	  if (!table) {
-		console.error('Tidak ada <table> pada halaman.');
-	  }
-	  const tbody = table.querySelector('tbody') || table.appendChild(document.createElement('tbody'));
+/***********************
+   * 2) Helper DOM & Pencarian Elemen Eksisting
+   ***********************/
+  const $ = (sel, parent=document) => parent.querySelector(sel);
 
-	  // Util format time
-	  const fmt = (ts) => {
-		try { return ts?.toDate ? ts.toDate().toLocaleString() : '-'; }
-		catch { return '-'; }
-	  };
+  // Cari tombol "Add New User" tanpa ubah HTML:
+  function findAddUserButton() {
+    // Prioritas: id/data-attr yang umum
+    let el = document.getElementById('btnAddUser') 
+          || document.querySelector('[data-action="add-user"]');
+    if (el) return el;
 
-	  // Render baris user
-	  function renderRow(u) {
-		const tr = document.createElement('tr');
-		const role = u.role || 'viewer';
-		const statusText = u.disabled ? 'Disabled' : 'Enabled';
+    // Fallback: cari berdasarkan teks
+    const candidates = document.querySelectorAll('button, a, [role="button"]');
+    for (const n of candidates) {
+      const t = (n.textContent || '').trim().toLowerCase();
+      if (t === 'add new user' || t === 'add user') return n;
+    }
+    return null;
+  }
 
-		tr.innerHTML = `
-		  <td>${u.email ?? '-'}</td>
-		  <td>${u.displayName ?? '-'}</td>
-		  <td>
-			<select class="role-select" data-uid="${u.id}" data-prev="${role}">
-			  <option value="viewer" ${role==='viewer'?'selected':''}>Viewer</option>
-			  <option value="contributor" ${role==='contributor'?'selected':''}>Contributor</option>
-			  <option value="admin" ${role==='admin'?'selected':''}>Admin</option>
-			</select>
-		  </td>
-		  <td class="status" data-uid="${u.id}">${statusText}</td>
-		  <td>${fmt(u.createdAt)}</td>
-		  <td>${fmt(u.lastSignInTime)}</td>
-		  <td>
-			<button class="btn-reset"  data-email="${u.email}">Reset Password</button>
-			<button class="btn-delete" data-uid="${u.id}">Delete</button>
-		  </td>
+  // Cari modal & form Add yang sudah ada di halaman Mas
+  function findAddUserModal() {
+    const modal = document.getElementById('addUserModal') 
+               || document.querySelector('[data-modal="add-user"]');
+    const form  = document.getElementById('addUserForm') 
+               || modal?.querySelector('form');
+    const btnClose = document.getElementById('btnCloseModal') 
+                  || document.getElementById('btnCloseModal2') 
+                  || modal?.querySelector('[data-action="close-modal"]');
+    return { modal, form, btnClose };
+  }
+
+  // Tabel pertama di halaman dipakai sebagai tabel user
+  const table = document.querySelector('table');
+  if (!table) console.warn('Tidak ditemukan <table> pada halaman.');
+  const tbody = table?.querySelector('tbody') || table?.appendChild(document.createElement('tbody'));
+
+  // Modal show/hide mengikuti CSS Mas (pakai class 'hidden' bila ada, + display)
+  function show(el) { if (!el) return; el.classList?.remove('hidden'); el.style.display = 'block'; }
+  function hide(el) { if (!el) return; el.classList?.add('hidden');  el.style.display = 'none'; }
+
+  const fmtTime = (ts) => {
+    try { return ts?.toDate ? ts.toDate().toLocaleString() : '-'; } catch { return '-'; }
+  };
+
+  /***********************
+   * 3) Render Baris Tabel
+   ***********************/
+  function renderRow(u) {
+    const tr = document.createElement('tr');
+    const roleText = u.role || 'viewer';
+    const statusText = u.disabled ? 'Disabled' : 'Enabled';
+
+    tr.innerHTML = `
+      <td>${u.email ?? '-'}</td>
+      <td>${u.displayName ?? '-'}</td>
+      <td class="col-role" data-uid="${u.id}">
+        <span class="role-text">${roleText}</span>
+      </td>
+      <td class="status" data-uid="${u.id}">${statusText}</td>
+      <td>${fmtTime(u.createdAt)}</td>
+      <td>${fmtTime(u.lastSignInTime)}</td>
+      <td>
+        <button class="btn-edit"   data-uid="${u.id}">Edit</button>
+        <button class="btn-reset"  data-email="${u.email}">Reset Password</button>
+        <button class="btn-delete" data-uid="${u.id}">Delete</button>
+      </td>
+    `;
+    return tr;
+	 }
+
+	  // Masuk ke mode edit pada kolom Role
+	  function enterEditRole(cell, uid, currentRole) {
+		if (!cell || cell.dataset.editing === 'true') return;
+		cell.dataset.editing = 'true';
+		cell.innerHTML = `
+		  <select class="role-select" data-uid="${uid}">
+			<option value="viewer" ${currentRole==='viewer'?'selected':''}>Viewer</option>
+			<option value="contributor" ${currentRole==='contributor'?'selected':''}>Contributor</option>
+			<option value="admin" ${currentRole==='admin'?'selected':''}>Admin</option>
+		  </select>
+		  <button class="btn-save"   data-uid="${uid}">Save</button>
+		  <button class="btn-cancel" data-uid="${uid}">Cancel</button>
 		`;
-		return tr;
 	  }
 
-	  // 4) Guard ringan + load data
+	  // Keluar dari mode edit (kembali ke teks)
+	  function exitEditRole(cell, newRole) {
+		if (!cell) return;
+		cell.dataset.editing = 'false';
+		cell.innerHTML = `<span class="role-text">${newRole}</span>`;
+	  }
+
+	  /***********************
+	   * 4) Load Data Users (list) & Binding Actions
+	   ***********************/
 	  onAuthStateChanged(auth, async (user) => {
 		if (!user) { window.location.href = 'login_main.html'; return; }
 
-		// Ambil role dari /users/{uid} (SESUAI RULES MAS)
+		// Ambil role dari /users/{uid} (sesuai rules asli Mas)
 		try {
 		  const me = await getDoc(doc(db, 'users', user.uid));
-		  const myRole = me.exists() ? me.data().role : null;
+		  if (!me.exists()) {
+			console.warn('Dokumen user login belum ada. Pastikan dibuat saat onboarding.');
+		  }
+		} catch (err) {
+		  console.warn('Gagal membaca profil login:', err?.message || err);
+		}
 
-		  // Render list users (Rules Mas: list users hanya admin)
+		// LIST users (rules: hanya admin yang boleh list)
+		if (tbody) {
 		  const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
 		  onSnapshot(qUsers, {
 			next: (snap) => {
 			  tbody.innerHTML = '';
 			  snap.forEach(d => {
 				const data = d.data();
-				if (data.deletedAt) return; // sembunyikan yang soft-deleted
+				if (data.deletedAt) return; // sembunyikan soft-deleted
 				tbody.appendChild(renderRow({ id: d.id, ...data }));
 			  });
 			},
 			error: (err) => {
-			  // Jika non-admin mencoba list -> PERMISSION_DENIED (sesuai rules Mas)
 			  console.warn('Gagal list users:', err?.message || err);
 			  tbody.innerHTML = '<tr><td colspan="7">Tidak punya izin melihat daftar users.</td></tr>';
 			}
 		  });
-		} catch (err) {
-		  console.warn('Tidak dapat memuat role login (users/self):', err);
-		  tbody.innerHTML = '<tr><td colspan="7">Gagal memuat profil. Coba refresh.</td></tr>';
 		}
-	  });
 
-	  // 5) Edit Role (update HANYA /users/{uid}.role)
-	  document.addEventListener('change', async (e) => {
-		const el = e.target;
-		if (!el.matches('.role-select')) return;
-		const uid  = el.dataset.uid;
-		const role = el.value;
-		const prev = el.dataset.prev || 'viewer';
+		// ===== A. ADD NEW USER (pakai elemen eksisting Mas) =====
+		const addBtn = findAddUserButton();
+		const { modal, form, btnClose } = findAddUserModal();
 
-		try {
-		  const batch = writeBatch(db);
-		  batch.update(doc(db, 'users', uid), { role });
-		  await batch.commit();
-		  el.dataset.prev = role;
-		} catch (err) {
-		  console.error(err);
-		  alert('Gagal update role. Cek Rules/izin.');
-		  el.value = prev; // rollback UI
-		}
-	  });
+		addBtn?.addEventListener('click', () => show(modal));
+		btnClose?.addEventListener('click', () => hide(modal));
 
-	  // 6) Reset Password & Delete (soft)
-	  tbody.addEventListener('click', async (e) => {
-		const t = e.target;
-
-		// Reset password
-		if (t.classList.contains('btn-reset')) {
-		  const email = t.dataset.email;
+		form?.addEventListener('submit', async (e) => {
+		  e.preventDefault();
 		  try {
-			await sendPasswordResetEmail(auth, email);
-			alert('Email reset password dikirim.');
+			const email = form.querySelector('input[name="email"]')?.value?.trim();
+			const password = form.querySelector('input[name="password"]')?.value;
+			const displayName = form.querySelector('input[name="displayName"]')?.value?.trim();
+			const role = form.querySelector('input[name="role"]:checked')?.value || 'viewer';
+			if (!email || !password) { alert('Email & password wajib diisi'); return; }
+
+			// Karena Mas tidak mau ubah halaman/struktur, kita TIDAK membuat secondary app di sini
+			// (opsi create user via client akan menimpa sesi admin).
+			// Rekomendasi aman (tanpa ubah halaman lain):
+			//  - Admin menambahkan data user ke koleksi `users` (supaya tampil dulu di tabel)
+			//  - User akan melakukan signup/login sendiri (atau admin buat manual via Console)
+			//  - Setelah user ada, role sudah siap di `users/{uid}` untuk diatur via Edit
+			// Jika Mas tetap ingin auto-create akun Auth dari halaman ini tanpa logout admin,
+			// beri izin saya untuk menambahkan inisialisasi "secondary app" beberapa baris di sini.
+
+			alert('Untuk menjaga sesi admin, pembuatan akun Auth disarankan via Console atau izinkan secondary app.\nData user akan dibuat di Firestore terlebih dahulu.');
+
+			// Simpan placeholder di Firestore agar user masuk ke list (tanpa UID Auth)
+			// NOTE: tanpa UID, ini hanya placeholder. Nanti setelah user login pertama kali, UID-nya berbeda.
+			// Direkomendasikan: create user Auth via Console lalu doc users/{uid} dibuat/diupdate.
+			const tempId = `temp_${Date.now()}`;
+			await writeBatch(db)
+			  .set(doc(db, 'users', tempId), {
+				email, displayName: displayName || '', role, disabled: false,
+				createdAt: serverTimestamp()
+			  })
+			  .commit();
+
+			hide(modal);
+			form.reset();
 		  } catch (err) {
 			console.error(err);
-			alert('Gagal mengirim reset password.');
+			alert('Gagal menambah user.');
 		  }
-		}
+		});
 
-		// Soft delete = set users/{uid}.deletedAt
-		if (t.classList.contains('btn-delete')) {
-		  const uid = t.dataset.uid;
-		  if (!confirm('Delete user ini? (Soft delete: akun Auth TIDAK terhapus)')) return;
-		  try {
-			await updateDoc(doc(db, 'users', uid), { deletedAt: serverTimestamp() });
-			// Hapus baris dari UI
-			const row = t.closest('tr'); row?.parentNode?.removeChild(row);
-		  } catch (err) {
-			console.error(err);
-			alert('Gagal menghapus user.');
+		// ===== B. ACTIONS di tabel =====
+		table?.addEventListener('click', async (e) => {
+		  const t = e.target;
+
+		  // Edit → masuk mode edit role
+		  if (t.classList.contains('btn-edit')) {
+			const uid = t.dataset.uid;
+			const cell = t.closest('tr')?.querySelector('.col-role');
+			const cur = cell?.querySelector('.role-text')?.textContent?.trim() || 'viewer';
+			enterEditRole(cell, uid, cur);
 		  }
-		}
+
+		  // Save role
+		  if (t.classList.contains('btn-save')) {
+			const uid = t.dataset.uid;
+			const row = t.closest('tr');
+			const cell = row?.querySelector('.col-role');
+			const select = cell?.querySelector('.role-select');
+			const newRole = select?.value || 'viewer';
+			try {
+			  const batch = writeBatch(db);
+			  batch.update(doc(db, 'users', uid), { role: newRole });
+			  await batch.commit();
+			  exitEditRole(cell, newRole);
+			  alert('Role berhasil disimpan.');
+			} catch (err) {
+			  console.error(err);
+			  alert('Gagal menyimpan role. Cek Rules/izin.');
+			}
+		  }
+
+		  // Cancel edit role
+		  if (t.classList.contains('btn-cancel')) {
+			const row = t.closest('tr');
+			const cell = row?.querySelector('.col-role');
+			const prev = cell?.getAttribute('data-prev')
+					  || cell?.querySelector('.role-select')?.getAttribute('data-prev')
+					  || 'viewer';
+			const curText = row?.querySelector('.role-select')?.value || prev;
+			exitEditRole(cell, curText);
+		  }
+
+		  // Reset Password
+		  if (t.classList.contains('btn-reset')) {
+			const email = t.dataset.email;
+			try {
+			  await sendPasswordResetEmail(auth, email);
+			  alert('Email reset password dikirim.');
+			} catch (err) {
+			  console.error(err);
+			  alert('Gagal mengirim reset password.');
+			}
+		  }
+
+		  // Delete (soft)
+		  if (t.classList.contains('btn-delete')) {
+			const uid = t.dataset.uid;
+			if (!confirm('Delete user ini? (Soft delete: akun Auth TIDAK terhapus)')) return;
+			try {
+			  await updateDoc(doc(db, 'users', uid), { deletedAt: serverTimestamp() });
+			  // Hapus baris dari UI
+			  const row = t.closest('tr'); row?.parentNode?.removeChild(row);
+			} catch (err) {
+			  console.error(err);
+			  alert('Gagal menghapus user.');
+			}
+		  }
+		});
+
+		// Edit Role — jika user klik dropdown lalu Enter (opsional), tetap butuh Save
+		table?.addEventListener('change', (e) => {
+		  const sel = e.target;
+		  if (sel.classList?.contains('role-select')) {
+			// Tidak auto-save. User harus klik Save atau Cancel.
+		  }
+		});
 	  });
-
 	</script>
 
 </body>
