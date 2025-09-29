@@ -241,13 +241,11 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
-<!-- Inisialisasi Firebase yang sudah Mas buat -->
-<script src="js/firebase-init.js"></script>
-
 <!-- User Management Page JS -->
 <script type="module">
   import { guardPage } from './js/auth-guard.js';
   import { mountUserMenu } from './js/user-menu.js';
+  import { app, auth, db } from '/js/firebase-init.js';
   import { initUserManagementPage } from '/js/user-management.js';
   initUserManagementPage()
 
