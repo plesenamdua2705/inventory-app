@@ -9,13 +9,12 @@ const firebaseConfig = {
   apiKey: "AIzaSyAyC23ke5IEIoz5FpS41OiT1wyBSKaRDVk",
   authDomain: "e-stock-ff767.firebaseapp.com",
   projectId: "e-stock-ff767",
-  // Disarankan verifikasi storageBucket dari Console (biasanya .appspot.com):
   storageBucket: "e-stock-ff767.appspot.com",
   messagingSenderId: "158396302579",
   appId: "1:158396302579:web:1626da0203660ce9a3a386"
 };
 
-export const app = initializeApp(firebaseConfig);
+export const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
@@ -39,4 +38,5 @@ export async function ensureUserDoc(user) {
 // (Opsional) listener untuk debugging
 // import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 // onAuthStateChanged(auth, (user) => { console.log('Auth:', !!user, user?.uid); });
+
 
