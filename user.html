@@ -236,9 +236,9 @@
         <i class="fas fa-angle-up"></i>
     </a>
    
-
+<!-- Script Module -->
 	<script type="module">
-	  import { guardPage } from '/js/auth-guard.js';
+      import { guardPage } from '/js/auth-guard.js';
 	  import { mountUserMenu } from '/js/user-menu.js';
 	  import { auth, db } from '/js/firebase-init.js';
 	  import {
@@ -249,51 +249,156 @@
 	    sendPasswordResetEmail
 	  } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
 	  import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js';
-	
-	  // Proteksi halaman
-	  guardPage({ allow:['viewer','contributor','admin'], loginPage:'/login_main.html', redirectIfDenied:'/login_main.html' });
-	
-	  // Pasang menu user
-	 
+    
+    // 1) Proteksi halaman only for admin
+    guardPage({ allow: ['admin'], redirectIfDenied: './index.html' }); 
+
+    // 2) Pasang user menu (tampilkan badge role)
 		mountUserMenu({
 		    rootSelector: "#user-menu-root",
 		    profileUrl: "./profile.html",
 		    aboutUrl: "./about.html",
 		    loginUrl: "./login_main.html",
-		  });
-	
-	  async function authHeaders() {
-	    const idToken = await auth.currentUser.getIdToken();
-	    return { 'Authorization': `Bearer ${idToken}`, 'Content-Type': 'application/json' };
-	  }
-	
-	  async function createUserServer({ email, displayName, role }) {
-	    const res = await fetch('/api/admin/create-user', {
-	      method: 'POST',
-	      headers: await authHeaders(),
-	      body: JSON.stringify({ email, displayName, role })
-	    });
-	    if (!res.ok) throw new Error(await res.text());
-	    return res.json();
+		});		
+
+	// 3) User Management Enhancer (ADD-ONLY)
+
+	  // Opsional: Callable Functions (jika sudah dideploy)
+	  let setUserRoleCF = null, setUserDisabledCF = null;
+	  try {
+		const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.3/firebase-functions.js");
+		const functions = getFunctions();
+		setUserRoleCF = httpsCallable(functions, "setUserRole");
+		setUserDisabledCF = httpsCallable(functions, "setUserDisabled");
+		console.info("[UM] Cloud Functions detected");
+	  } catch {
+		console.warn("[UM] Cloud Functions not available, using Firestore fallback");
 	  }
 
-	  // Contoh binding form:
-	document.querySelector('#formUser').addEventListener('submit', async (e) => {
-	e.preventDefault();
-	const f = e.currentTarget;
-	const payload = {
-	email: f.email.value.trim(),
-	displayName: f.displayName.value.trim(),
-	role: f.role.value
-	};
-	try {
-	await createUserServer(payload);
-	alert('User dibuat. Email reset password telah dikirim.');
-	} catch (err) {
-	alert('Gagal: ' + (err.message || err));
-	}
-	});
+	  // Tambah style ringan (tidak ganggu CSS Anda)
+	  const style = document.createElement("style");
+	  style.textContent = `
+		table.um-table { width:100%; border-collapse: collapse; margin-top:.5rem; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+		table.um-table th, table.um-table td { border-bottom:1px solid #e5e7eb; padding:.6rem .5rem; text-align:left; }
+		table.um-table th { background:#f8fafc; }
+		.um-btn { padding:.45rem .7rem; border:1px solid #d1d5db; border-radius:8px; background:#fff; cursor:pointer; }
+		.um-btn-danger { background:#ef4444; color:#fff; border-color:#ef4444; }
+		select.role-select { padding:.35rem .5rem; border:1px solid #cbd5e1; border-radius:8px; }
+	  `;
+	  document.head.appendChild(style);
+
+	  // Ambil table yang SUDAH ada di halaman Anda (tanpa ubah markup)
+	  const table = document.querySelector("table");
+	  if (table) table.classList.add("um-table");
+
+	  // Pastikan ada <tbody> untuk render
+	  let tbody = table?.tBodies?.[0];
+	  if (!tbody && table) { tbody = document.createElement("tbody"); tbody.id = "tblUsers"; table.appendChild(tbody); }
+
+	  // Render satu baris user
+	  function renderRow(tbody, id, u) {
+		const tr = document.createElement("tr");
+		const created = u.createdAt?.toDate?.() ? u.createdAt.toDate().toLocaleString() : '-';
+		const status = u.disabled ? "Disabled" : "Active";
+
+		const tdName = document.createElement("td"); tdName.textContent = u.displayName || '-';
+		const tdEmail = document.createElement("td"); tdEmail.textContent = u.email || '-';
+
+		const tdRole = document.createElement("td");
+		const sel = document.createElement("select");
+		sel.className = "role-select";
+		sel.setAttribute("data-uid", id);
+		["viewer","contributor","admin"].forEach(r => {
+		  const opt = document.createElement("option");
+		  opt.value = r; opt.textContent = r;
+		  if (u.role === r) opt.selected = true;
+		  sel.appendChild(opt);
+		});
+		tdRole.appendChild(sel);
+
+		const tdCreated = document.createElement("td"); tdCreated.textContent = created;
+		const tdStatus = document.createElement("td"); tdStatus.textContent = status;
+
+		const tdActions = document.createElement("td");
+		const btn = document.createElement("button");
+		btn.className = "um-btn " + (u.disabled ? "" : "um-btn-danger");
+		btn.textContent = u.disabled ? "Enable" : "Disable";
+		btn.setAttribute("data-action", u.disabled ? "enable" : "disable");
+		btn.setAttribute("data-uid", id);
+		tdActions.appendChild(btn);
+
+		tr.append(tdName, tdEmail, tdRole, tdCreated, tdStatus, tdActions);
+		tbody.appendChild(tr);
+	  }
+
+	  // Realtime list
+	  if (tbody) {
+		const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+		onSnapshot(q, (snap) => {
+		  tbody.innerHTML = "";
+		  snap.forEach(docSnap => renderRow(tbody, docSnap.id, docSnap.data()));
+		});
+	  }
+
+	  // Ubah role
+	  document.addEventListener("change", async (e) => {
+		const sel = e.target.closest(".role-select");
+		if (!sel) return;
+		const uid = sel.getAttribute("data-uid");
+		const role = sel.value;
+
+		try {
+		  if (setUserRoleCF) {
+			await setUserRoleCF({ uid, role });
+		  } else {
+			await updateDoc(doc(db, "users", uid), { role, updatedAt: serverTimestamp() });
+			alert("Role diperbarui (fallback Firestore). Disarankan aktifkan Cloud Functions.");
+		  }
+		} catch (err) {
+		  console.error(err);
+		  alert("Gagal mengubah role: " + (err.message || err));
+		}
+	  });
+
+	  // Disable/Enable
+	  document.addEventListener("click", async (e) => {
+		const btn = e.target.closest("button[data-action]");
+		if (!btn) return;
+		const uid = btn.getAttribute("data-uid");
+		const disabled = btn.getAttribute("data-action") === "disable";
+
+		try {
+		  if (setUserDisabledCF) {
+			await setUserDisabledCF({ uid, disabled });
+		  } else {
+			await updateDoc(doc(db, "users", uid), { disabled, updatedAt: serverTimestamp() });
+			alert("Firestore updated; akun Auth belum berubah. Aktifkan Cloud Functions.");
+		  }
+		} catch (err) {
+		  console.error(err);
+		  alert("Gagal mengubah status user: " + (err.message || err));
+		}
+	  });
+
+	  // Intersep tautan Logout (teks)
+	  document.addEventListener("click", (e) => {
+		const a = e.target.closest("a");
+		if (!a) return;
+		if (/logout/i.test(a.textContent)) {
+		  e.preventDefault();
+		  signOut(auth).then(() => (window.location.href = "/login_main.html"))
+					   .catch(err => alert("Gagal logout: " + err.message));
+		}
+	  });
+
+	  // Badge admin kecil
+	  onAuthStateChanged(auth, (user) => {
+		if (!user) return;
+		const b = document.createElement("div");
+		b.textContent = "Admin: " + (user.displayName || user.email || user.uid);
+		Object.assign(b.style, { position:"fixed", right:"12px", top:"12px", background:"#111827", color:"#fff", padding:"6px 10px", borderRadius:"10px", fontSize:"12px", zIndex:9999 });
+		document.body.appendChild(b);
+	  });
 	</script>
-
 </body>
 </html>
