@@ -269,45 +269,39 @@
 	  /***********************
 	   * Ambil referensi tabel EXISTING (tanpa ubah markup)
 	   ***********************/
+	  
+	// 3) Ambil referensi table existing (tanpa ubah markup)
 	  const table = document.querySelector('table');
 	  if (!table) {
-		console.error('Tidak ditemukan <table> pada halaman.');
+		console.error('Tidak ada <table> pada halaman.');
 	  }
-	  // Pastikan ada <tbody>, kalau belum: buat (ini tidak mengubah struktur, hanya melengkapi)
 	  const tbody = table.querySelector('tbody') || table.appendChild(document.createElement('tbody'));
 
-	  // Helper waktu
-	  const fmtTime = (ts) => {
-		try {
-		  if (!ts) return '-';
-		  return ts.toDate().toLocaleString();
-		} catch { return '-'; }
+	  // Util format time
+	  const fmt = (ts) => {
+		try { return ts?.toDate ? ts.toDate().toLocaleString() : '-'; }
+		catch { return '-'; }
 	  };
 
-	  // Render 1 baris user
+	  // Render baris user
 	  function renderRow(u) {
 		const tr = document.createElement('tr');
-
-		// Kolom Role = dropdown (edit role)
 		const role = u.role || 'viewer';
-		const roleSelectHtml = `
-		  <select class="role-select" data-uid="${u.id}" data-prev="${role}">
-			<option value="viewer" ${role==='viewer'?'selected':''}>Viewer</option>
-			<option value="contributor" ${role==='contributor'?'selected':''}>Contributor</option>
-			<option value="admin" ${role==='admin'?'selected':''}>Admin</option>
-		  </select>
-		`;
-
-		// Status dari field disabled (boolean)
 		const statusText = u.disabled ? 'Disabled' : 'Enabled';
 
 		tr.innerHTML = `
 		  <td>${u.email ?? '-'}</td>
 		  <td>${u.displayName ?? '-'}</td>
-		  <td>${roleSelectHtml}</td>
+		  <td>
+			<select class="role-select" data-uid="${u.id}" data-prev="${role}">
+			  <option value="viewer" ${role==='viewer'?'selected':''}>Viewer</option>
+			  <option value="contributor" ${role==='contributor'?'selected':''}>Contributor</option>
+			  <option value="admin" ${role==='admin'?'selected':''}>Admin</option>
+			</select>
+		  </td>
 		  <td class="status" data-uid="${u.id}">${statusText}</td>
-		  <td>${fmtTime(u.createdAt)}</td>
-		  <td>${fmtTime(u.lastSignInTime)}</td>
+		  <td>${fmt(u.createdAt)}</td>
+		  <td>${fmt(u.lastSignInTime)}</td>
 		  <td>
 			<button class="btn-reset"  data-email="${u.email}">Reset Password</button>
 			<button class="btn-delete" data-uid="${u.id}">Delete</button>
@@ -316,64 +310,59 @@
 		return tr;
 	  }
 
-	  /***********************
-	   * Guard ringan (opsional) & Load data
-	   * (Jika roles/{uid}.role !== 'admin', aksi tulis bisa ditolak oleh Rules)
-	   ***********************/
+	  // 4) Guard ringan + load data
 	  onAuthStateChanged(auth, async (user) => {
-		if (!user) {
-		  window.location.href = 'login_main.html';
-		  return;
-		}
-		// Optional: cek role admin untuk menghindari error tulis (menyesuaikan Rules Mas)
-		try {
-		  const rSnap = await getDoc(doc(db, 'roles', user.uid));
-		  const myRole = rSnap.exists() ? rSnap.data().role : null;
-		  // Tetap lanjut render (read users), aksi tulis akan gagal jika bukan admin.
-		} catch (e) {
-		  console.warn('Tidak dapat memuat role login:', e);
-		}
+		if (!user) { window.location.href = 'login_main.html'; return; }
 
-		// Realtime: list users (skip yang soft-deleted)
-		const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-		onSnapshot(qUsers, (snap) => {
-		  tbody.innerHTML = '';
-		  snap.forEach((d) => {
-			const data = d.data();
-			if (data.deletedAt) return; // soft delete: sembunyikan dari tabel
-			const u = { id: d.id, ...data };
-			tbody.appendChild(renderRow(u));
+		// Ambil role dari /users/{uid} (SESUAI RULES MAS)
+		try {
+		  const me = await getDoc(doc(db, 'users', user.uid));
+		  const myRole = me.exists() ? me.data().role : null;
+
+		  // Render list users (Rules Mas: list users hanya admin)
+		  const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+		  onSnapshot(qUsers, {
+			next: (snap) => {
+			  tbody.innerHTML = '';
+			  snap.forEach(d => {
+				const data = d.data();
+				if (data.deletedAt) return; // sembunyikan yang soft-deleted
+				tbody.appendChild(renderRow({ id: d.id, ...data }));
+			  });
+			},
+			error: (err) => {
+			  // Jika non-admin mencoba list -> PERMISSION_DENIED (sesuai rules Mas)
+			  console.warn('Gagal list users:', err?.message || err);
+			  tbody.innerHTML = '<tr><td colspan="7">Tidak punya izin melihat daftar users.</td></tr>';
+			}
 		  });
-		});
+		} catch (err) {
+		  console.warn('Tidak dapat memuat role login (users/self):', err);
+		  tbody.innerHTML = '<tr><td colspan="7">Gagal memuat profil. Coba refresh.</td></tr>';
+		}
 	  });
 
-	  /***********************
-	   * ACTION: Edit Role
-	   ***********************/
+	  // 5) Edit Role (update HANYA /users/{uid}.role)
 	  document.addEventListener('change', async (e) => {
 		const el = e.target;
 		if (!el.matches('.role-select')) return;
-
 		const uid  = el.dataset.uid;
 		const role = el.value;
 		const prev = el.dataset.prev || 'viewer';
 
 		try {
 		  const batch = writeBatch(db);
-		  batch.set(doc(db, 'roles', uid), { role }, { merge: true });
-		  batch.set(doc(db, 'users', uid), { role }, { merge: true });
+		  batch.update(doc(db, 'users', uid), { role });
 		  await batch.commit();
 		  el.dataset.prev = role;
 		} catch (err) {
 		  console.error(err);
-		  alert('Gagal update role. Periksa Firestore Rules/izin.');
+		  alert('Gagal update role. Cek Rules/izin.');
 		  el.value = prev; // rollback UI
 		}
 	  });
 
-	  /***********************
-	   * ACTION: Reset Password & Delete
-	   ***********************/
+	  // 6) Reset Password & Delete (soft)
 	  tbody.addEventListener('click', async (e) => {
 		const t = e.target;
 
@@ -389,14 +378,12 @@
 		  }
 		}
 
-		// Delete (soft delete di Firestore)
+		// Soft delete = set users/{uid}.deletedAt
 		if (t.classList.contains('btn-delete')) {
 		  const uid = t.dataset.uid;
 		  if (!confirm('Delete user ini? (Soft delete: akun Auth TIDAK terhapus)')) return;
 		  try {
 			await updateDoc(doc(db, 'users', uid), { deletedAt: serverTimestamp() });
-			// (opsional) tandai di roles juga
-			await setDoc(doc(db, 'roles', uid), { deleted: true }, { merge: true });
 			// Hapus baris dari UI
 			const row = t.closest('tr'); row?.parentNode?.removeChild(row);
 		  } catch (err) {
@@ -405,6 +392,7 @@
 		  }
 		}
 	  });
+
 	</script>
 
 </body>
