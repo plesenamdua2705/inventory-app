@@ -246,8 +246,17 @@
 
 <!-- User Management Page JS -->
 <script type="module">
+  import { guardPage } from './js/auth-guard.js';
+  import { mountUserMenu } from './js/user-menu.js';
   import { initUserManagementPage } from '/js/user-management.js';
   initUserManagementPage()
+
+	mountUserMenu({
+    rootSelector: '#user-menu-root',
+    profileUrl: './profile.html',
+    aboutUrl: './about.html',
+    loginUrl: './login_main.html'
+  });
 </script>
 
 </body>
