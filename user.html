@@ -278,22 +278,22 @@
 	  }
 
 	  // Contoh binding form:
-	  // document.querySelector('#formUser').addEventListener('submit', async (e) => {
-	  //   e.preventDefault();
-	  //   const f = e.currentTarget;
-	  //   const payload = {
-	  //     email: f.email.value.trim(),
-	  //     displayName: f.displayName.value.trim(),
-	  //     role: f.role.value
-	  //   };
-	  //   try {
-	  //     await createUserServer(payload);
-	  //     alert('User dibuat. Email reset password telah dikirim.');
-	  //     // TODO: refresh tabel users
-	  //   } catch (err) {
-	  //     alert('Gagal: ' + (err.message || err));
-	  //   }
-	  // });
+	document.querySelector('#formUser').addEventListener('submit', async (e) => {
+	e.preventDefault();
+	const f = e.currentTarget;
+	const payload = {
+	email: f.email.value.trim(),
+	displayName: f.displayName.value.trim(),
+	role: f.role.value
+	};
+	try {
+	await createUserServer(payload);
+	alert('User dibuat. Email reset password telah dikirim.');
+	TODO: refresh tabel users
+	} catch (err) {
+	alert('Gagal: ' + (err.message || err));
+	}
+	});
 	</script>
 
 </body>
