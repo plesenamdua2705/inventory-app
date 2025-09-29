@@ -144,18 +144,18 @@
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
 						
-							<!-- Modal Add/Edit User (tanpa password) -->
-							<button id="btnAddUser" type="button" class="btn btn-primary mb-1" data-toggle="modal" data-target="#addSouvenirModal">Add New User</button>
+							<!-- Modal Content popup Form-->
+							<button id="btnAddUser" type="button" class="btn btn-primary mb-1" data-toggle="modal">Add New User</button>
 							
 							
-							<div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
+							<div id="modalUser" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
 								<div class="modal-dialog" role="document">
 									<form id="addUserForm">
 										<div class="modal-content">
 											<div class="modal-header">
 												<h5 class="modal-title" id="modalTitle">Add New User</h5>
 												<input type="hidden" name="uid" />
-												<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												<button id= "btnCloseModal" type="button" class="close" data-dismiss="modal" aria-label="Close">
 													<span aria-hidden="true">&times;</span>
 												</button>
 											</div>
@@ -165,6 +165,10 @@
 												<div class="form-group">
 													<label>Email</label>
 													<input name="email" type="email" class="form-control" required />
+												</div>
+												<div class="form-group">
+													<label>Password</label>
+													<input name="password" type="password" class="form-control" required />
 												</div>
 												<div class="form-group">
 													<label>Nama (opsional)</label>
@@ -177,10 +181,11 @@
 														<option value="contributor">Contributor</option>
 														<option value="viewer">Viewer</option>
 													</select>
-													<p id="formHint" style="font-size:12px;color:#666;margin-top:.5rem;">
-													  Setelah dibuat, kirim link reset password ke email user.
-													</p>
 												</div>
+											</div>
+											<div class="modal-footer">
+												<button type="button" id= "btnCloseModal2" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+												<button type="submit" class="btn btn-primary">Create</button>
 											</div>
 										</div>
 									</form>
@@ -191,19 +196,19 @@
 						<!-- Tabel User -->
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id= "tblUsers" class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <table id= "userTable" class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
                                             <th>Email</th>
 											<th>Nama</th>
 											<th>Role</th>
 											<th>Status</th>
-											<th>Dibuat</th>
-											<th>Last Sign-in</th>
+											<th>Di Buat</th>
+											<th>Di Update</th>
 											<th style="width:220px;">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="tbodyUsers"></tbody>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                         </div>
