@@ -241,17 +241,22 @@
 <!-- Logic User Management (yang tadi saya kirim) -->
 <script type="module" src="/js/user-management.js</script>
 
-<!-- (Opsional) Lem perekat ringan di sisi DOM:
-     - Memastikan <tbody> ada pada #userTable jika belum dibuat di HTML
-     - TANPA mengubah script utama atau CSS Mas -->
-<script>
-  (function () {
-    var table = document.getElementById('userTable');
-    if (table && !table.querySelector('tbody')) {
-      table.appendChild(document.createElement('tbody'));
-    }
-  })();
+<script type="module">
+  import { guardPage } from './js/auth-guard.js';
+  import { mountUserMenu } from './js/user-menu.js';
 
+  guardPage({
+    allow: ['admin'],
+    loginPage: './login_main.html',
+    redirectIfDenied: './login_main.html'
+  });
+
+  mountUserMenu({
+    rootSelector: '#user-menu-root',
+    profileUrl: './profile.html',
+    aboutUrl: './about.html',
+    loginUrl: './login_main.html'
+  });
 </script>
 </body>
 </html>
