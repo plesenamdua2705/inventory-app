@@ -140,22 +140,22 @@
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
-                    <!-- DataTales Example -->
+                    <!-- DataTables Example -->
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
 						
 							<!-- Modal Content popup Form-->
-							<button id="btnAddUser" type="button" class="btn btn-primary mb-1" data-toggle="modal">Add New User</button>
+							<button id="btnAdd" type="button" class="btn btn-primary mb-1" data-toggle="modal">Add New User</button>
 							
 							
-							<div id="modalUser" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
+							<div id="modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
 								<div class="modal-dialog" role="document">
-									<form id="addUserForm">
+									<form id="formAdd">
 										<div class="modal-content">
 											<div class="modal-header">
 												<h5 class="modal-title" id="modalTitle">Add New User</h5>
 												<input type="hidden" name="uid" />
-												<button id= "btnCloseModal" type="button" class="close" data-dismiss="modal" aria-label="Close">
+												<button id= "btnClose1" type="button" class="close" data-dismiss="modal" aria-label="Close">
 													<span aria-hidden="true">&times;</span>
 												</button>
 											</div>
@@ -184,7 +184,7 @@
 												</div>
 											</div>
 											<div class="modal-footer">
-												<button type="button" id= "btnCloseModal2" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+												<button type="button" id= "btnClose2" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
 												<button type="submit" class="btn btn-primary">Create</button>
 											</div>
 										</div>
