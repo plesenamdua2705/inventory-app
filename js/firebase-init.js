@@ -2,7 +2,7 @@
 // Modular SDK (CDN)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
 import { getAuth /* setPersistence dipindah ke halaman login */ } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-import { collection, doc, getDoc, setDoc, updateDoc, writeBatch, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
 // -- FIREBASE CONSOLE --
 const firebaseConfig = {
@@ -38,7 +38,3 @@ export async function ensureUserDoc(user) {
 // (Opsional) listener untuk debugging
 // import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 // onAuthStateChanged(auth, (user) => { console.log('Auth:', !!user, user?.uid); });
-
-
-
-
