@@ -144,17 +144,18 @@
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
 						
-							<!-- Modal Add/Edit User -->
-							<button id="btnAddUser" type="button" class="btn btn-primary mb-1" data-toggle="modal">Add New User</button>
-														
-							<div id="addUserModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
+							<!-- Modal Add/Edit User (tanpa password) -->
+							<button id="btnAdd" type="button" class="btn btn-primary mb-1" data-toggle="modal" data-target="#addSouvenirModal">Add New User</button>
+							
+							
+							<div class="modal fade" id="modalUser" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
 								<div class="modal-dialog" role="document">
-									<form id="addUserForm">
+									<form id="formUser">
 										<div class="modal-content">
 											<div class="modal-header">
 												<h5 class="modal-title" id="modalTitle">Add New User</h5>
 												<input type="hidden" name="uid" />
-												<button id="btnCloseModal" type="button" class="close" data-dismiss="modal" aria-label="Close">
+												<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 													<span aria-hidden="true">&times;</span>
 												</button>
 											</div>
@@ -164,10 +165,6 @@
 												<div class="form-group">
 													<label>Email</label>
 													<input name="email" type="email" class="form-control" required />
-												</div>
-												<div class="form-group">
-													<label>Password</label>
-													<input name="password" type="password" class="form-control" minlength="6" required />
 												</div>
 												<div class="form-group">
 													<label>Nama (opsional)</label>
@@ -180,11 +177,12 @@
 														<option value="contributor">Contributor</option>
 														<option value="viewer">Viewer</option>
 													</select>
+													<p id="formHint" style="font-size:12px;color:#666;margin-top:.5rem;">
+													  Setelah dibuat, kirim link reset password ke email user.
+													</p>
 												</div>
 											</div>
 										</div>
-										<button type="submit">Create</button>
-										<button type="button" id="btnCloseModal2">Close</button>
 									</form>
 								</div>
 							</div>
@@ -193,17 +191,19 @@
 						<!-- Tabel User -->
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id= "userTable" class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <table id= "tblUsers" class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
                                             <th>Email</th>
 											<th>Nama</th>
 											<th>Role</th>
+											<th>Status</th>
 											<th>Dibuat</th>
-											<th>Actions</th>
+											<th>Last Sign-in</th>
+											<th style="width:220px;">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody></tbody>
+                                    <tbody id="tbodyUsers"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -236,27 +236,173 @@
         <i class="fas fa-angle-up"></i>
     </a>
    
-<!-- Script Module -->
+
+	<!-- Script Module -->
+	<script type="module">
+      import { guardPage } from '/js/auth-guard.js';
+	  import { mountUserMenu } from '/js/user-menu.js';
+	  import { auth, db } from '/js/firebase-init.js';
+	  import {
+	    onAuthStateChanged,
+	    updatePassword,
+	    EmailAuthProvider,
+	    reauthenticateWithCredential,
+	    sendPasswordResetEmail
+	  } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
+	  import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js';
+    
+    // 1) Proteksi halaman only for admin
+    guardPage({ allow: ['admin'], redirectIfDenied: './index.html' }); 
+
+    // 2) Pasang user menu (tampilkan badge role)
+		mountUserMenu({
+		    rootSelector: "#user-menu-root",
+		    profileUrl: "./profile.html",
+		    aboutUrl: "./about.html",
+		    loginUrl: "./login_main.html",
+		});
+
+    // Callable Functions
+    const fnListUsers   = httpsCallable(functions, 'adminListUsers');
+    const fnCreateUser  = httpsCallable(functions, 'adminCreateUser');
+    const fnUpdateUser  = httpsCallable(functions, 'adminUpdateUser');
+    const fnDeleteUser  = httpsCallable(functions, 'adminDeleteUser');
 	
-<!-- Logic User Management (yang tadi saya kirim) -->
-<script type="module" src="/js/user-management.js</script>
+	await createUser({ email, displayName, role });
 
-<script type="module">
-  import { guardPage } from './js/auth-guard.js';
-  import { mountUserMenu } from './js/user-menu.js';
+    // Elemen UI
+    const tbody = document.querySelector('#tbodyUsers');
+    const modal = document.querySelector('#modalUser');
+    const form  = document.querySelector('#formUser');
+    const btnAdd = document.querySelector('#btnAdd');
+    const btnCancel = document.querySelector('#btnCancel');
+    const modalTitle = document.querySelector('#modalTitle');
 
-  guardPage({
-    allow: ['admin'],
-    loginPage: './login_main.html',
-    redirectIfDenied: './login_main.html'
-  });
+    // Modal helpers (ganti dengan modal lib yang Mas pakai)
+    const openModal = () => (modal.hidden = false);
+    const closeModal = () => (modal.hidden = true);
 
-  mountUserMenu({
-    rootSelector: '#user-menu-root',
-    profileUrl: './profile.html',
-    aboutUrl: './about.html',
-    loginUrl: './login_main.html'
-  });
-</script>
+    // Render row
+    function renderRows(items) {
+      tbody.innerHTML = '';
+      for (const u of items) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.email || ''}</td>
+          <td>${u.displayName || ''}</td>
+          <td>${u.role || 'viewer'}</td>
+          <td>${u.disabled ? 'Disabled' : 'Active'}</td>
+          <td>${u.creationTime || '-'}</td>
+          <td>${u.lastSignInTime || '-'}</td>
+          <td>
+            <button data-act="edit" data-uid="${u.uid}">Edit</button>
+            <button data-act="toggle" data-uid="${u.uid}" data-disabled="${!!u.disabled}">
+              ${u.disabled ? 'Enable' : 'Disable'}
+            </button>
+            <button data-act="reset" data-email="${u.email}">Reset Password</button>
+            <button data-act="delete" data-uid="${u.uid}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function loadUsers() {
+      const { data } = await fnListUsers(); // [{uid,email,displayName,role,disabled,creationTime,lastSignInTime}]
+      renderRows(data || []);
+    }
+
+    // Add New
+    btnAdd.addEventListener('click', () => {
+      form.reset();
+      form.uid.value = '';
+      modalTitle.textContent = 'Add New User';
+      openModal();
+    });
+
+    // Cancel
+    btnCancel.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeModal();
+    });
+
+    // Save (Add / Update)
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(form));
+      try {
+        if (!payload.uid) {
+          // CREATE
+          await fnCreateUser({
+            email: payload.email,
+            displayName: payload.displayName || '',
+            role: payload.role
+          });
+          // Kirim reset password dari client (email sudah ada di Auth)
+          await sendPasswordResetEmail(auth, payload.email);
+        } else {
+          // UPDATE (role)
+          await fnUpdateUser({
+            uid: payload.uid,
+            role: payload.role,
+            displayName: payload.displayName || null
+          });
+        }
+        closeModal();
+        await loadUsers();
+        alert('Berhasil disimpan.');
+      } catch (err) {
+        console.error(err);
+        alert('Gagal menyimpan: ' + (err.message || err));
+      }
+    });
+
+    // Actions
+    tbody.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const act = btn.dataset.act;
+
+      try {
+        if (act === 'edit') {
+          const uid = btn.dataset.uid;
+          const row = btn.closest('tr').children;
+          // Prefill dari tabel
+          form.uid.value = uid;
+          form.email.value = row[0].textContent.trim();
+          form.email.disabled = true; // email tidak diubah
+          form.displayName.value = row[1].textContent.trim();
+          form.role.value = row[2].textContent.trim();
+          modalTitle.textContent = 'Edit User';
+          openModal();
+        }
+        if (act === 'toggle') {
+          const uid = btn.dataset.uid;
+          const disabled = btn.dataset.disabled === 'true';
+          await fnUpdateUser({ uid, disabled: !disabled });
+          await loadUsers();
+        }
+        if (act === 'reset') {
+          const email = btn.dataset.email;
+          await sendPasswordResetEmail(auth, email);
+          alert('Email reset password telah dikirim.');
+        }
+        if (act === 'delete') {
+          const uid = btn.dataset.uid;
+          if (confirm('Yakin menghapus user ini?')) {
+            await fnDeleteUser({ uid });
+            await loadUsers();
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Operasi gagal: ' + (err.message || err));
+      }
+    });
+
+    // Inisialisasi
+    loadUsers();
+  </script>
+
 </body>
 </html>
