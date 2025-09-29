@@ -14,7 +14,7 @@ const firebaseConfig = {
   appId: "1:158396302579:web:1626da0203660ce9a3a386"
 };
 
-export const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
@@ -38,5 +38,6 @@ export async function ensureUserDoc(user) {
 // (Opsional) listener untuk debugging
 // import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 // onAuthStateChanged(auth, (user) => { console.log('Auth:', !!user, user?.uid); });
+
 
 
