@@ -237,179 +237,21 @@
     </a>
    
 <!-- Script Module -->
-	<script type="module">
-      import { guardPage } from '/js/auth-guard.js';
-	  import { mountUserMenu } from '/js/user-menu.js';
-	  import { auth, db } from '/js/firebase-init.js';
-	  import {
-		getAuth,
-	    onAuthStateChanged,
-		createUserWithEmailAndPassword,
-		updateProfile,
-	    updatePassword,
-		signOut,
-	    EmailAuthProvider,
-	    reauthenticateWithCredential,
-	    sendPasswordResetEmail
-	  } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
-	  import { initializeApp, deleteApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-	  import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
-
-    // 2) Pasang user menu (tampilkan badge role)
-		mountUserMenu({
-		    rootSelector: "#user-menu-root",
-		    profileUrl: "./profile.html",
-		    aboutUrl: "./about.html",
-		    loginUrl: "./login_main.html",
-		});		
-
-	// 3) User Management Enhancer
 	
-// ------ Guard admin (cek roles/{uid})
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = 'login_main.html'; return; }
-    const rSnap = await getDoc(doc(db, 'roles', user.uid));
-    if (!rSnap.exists() || rSnap.data().role !== 'admin') {
-      window.location.href = 'index.html'; // non-admin tidak boleh masuk
-      return;
+<!-- Logic User Management (yang tadi saya kirim) -->
+<script type="module" src="/js/user-management.js</script>
+
+<!-- (Opsional) Lem perekat ringan di sisi DOM:
+     - Memastikan <tbody> ada pada #userTable jika belum dibuat di HTML
+     - TANPA mengubah script utama atau CSS Mas -->
+<script>
+  (function () {
+    var table = document.getElementById('userTable');
+    if (table && !table.querySelector('tbody')) {
+      table.appendChild(document.createElement('tbody'));
     }
-    initPage();
-  });
+  })();
 
-  function showModal() { document.getElementById('addUserModal').style.display = 'block'; }
-  function hideModal() { document.getElementById('addUserModal').style.display = 'none'; }
-
-  function initPage() {
-    const btnAdd = document.getElementById('btnAddUser');
-    const btnClose = document.getElementById('btnCloseModal');
-    const btnClose2 = document.getElementById('btnCloseModal2');
-    const form = document.getElementById('addUserForm');
-    const tbody = document.querySelector('#userTable tbody');
-
-    btnAdd?.addEventListener('click', showModal);
-    btnClose?.addEventListener('click', hideModal);
-    btnClose2?.addEventListener('click', hideModal);
-
-    // ---- Realtime Listing users (skip yang deleted)
-    const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-    onSnapshot(qUsers, (snap) => {
-      tbody.innerHTML = '';
-      snap.forEach(d => {
-        const u = { id: d.id, ...d.data() };
-        if (u.deletedAt) return; // skip soft-deleted
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${u.email ?? '-'}</td>
-          <td>${u.displayName ?? '-'}</td>
-          <td>${u.role ?? '-'}</td>
-          <td>${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleString() : '-'}</td>
-          <td>
-            <button class="btn-reset" data-email="${u.email}">Send Reset Password</button>
-            <button class="btn-toggle" data-uid="${u.id}">Loading...</button>
-            <button class="btn-delete" data-uid="${u.id}">Delete</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-        setToggleButtonState(u.id, tr.querySelector('.btn-toggle'));
-      });
-    });
-
-    // Set label Disable/Enable berdasarkan roles/{uid}.disabled
-    async function setToggleButtonState(uid, buttonEl) {
-      try {
-        const rs = await getDoc(doc(db, 'roles', uid));
-        const disabled = !!(rs.exists() && rs.data().disabled);
-        buttonEl.textContent = disabled ? 'Enable' : 'Disable';
-        buttonEl.dataset.disabled = String(disabled);
-      } catch {
-        buttonEl.textContent = 'Disable';
-        buttonEl.dataset.disabled = 'false';
-      }
-    }
-
-    // ---- Actions
-    tbody.addEventListener('click', async (e) => {
-      const t = e.target;
-      if (t.classList.contains('btn-reset')) {
-        const email = t.dataset.email;
-        try {
-          await sendPasswordResetEmail(auth, email);
-          alert('Email reset password dikirim.');
-        } catch (err) {
-          console.error(err);
-          alert('Gagal mengirim reset password.');
-        }
-      }
-
-      if (t.classList.contains('btn-toggle')) {
-        const uid = t.dataset.uid;
-        const currentDisabled = t.dataset.disabled === 'true';
-        const nextDisabled = !currentDisabled;
-        try {
-          const batch = writeBatch(db);
-          batch.set(doc(db,'roles', uid), { disabled: nextDisabled }, { merge: true });
-          batch.set(doc(db,'users', uid), { disabled: nextDisabled }, { merge: true });
-          await batch.commit();
-          t.textContent = nextDisabled ? 'Enable' : 'Disable';
-          t.dataset.disabled = String(nextDisabled);
-          alert(nextDisabled ? 'User di-disable (akses Firestore akan ditolak).' : 'User di-enable.');
-        } catch (err) {
-          console.error(err);
-          alert('Gagal mengubah status user.');
-        }
-      }
-
-      if (t.classList.contains('btn-delete')) {
-        const uid = t.dataset.uid;
-        if (!confirm('Delete user ini? (Soft delete, akun Auth tidak terhapus)')) return;
-        try {
-          await updateDoc(doc(db,'users', uid), { deletedAt: serverTimestamp() });
-          // (opsional) tandai roles juga
-          await setDoc(doc(db,'roles', uid), { deleted: true }, { merge: true });
-          alert('User dihapus (soft delete).');
-        } catch (err) {
-          console.error(err);
-          alert('Gagal menghapus user.');
-        }
-      }
-    });
-
-    // ---- Add User (secondary app supaya admin tidak logout)
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = form.email.value.trim();
-      const password = form.password.value;
-      const displayName = form.displayName.value.trim();
-      const role = form.querySelector('input[name="role"]:checked')?.value || 'viewer';
-      if (!email || !password) return alert('Email dan password wajib diisi');
-
-      const secondaryName = 'SecondaryAuth';
-      const secondaryApp = initializeApp(firebaseConfig, secondaryName);
-      const secondaryAuth = getAuth(secondaryApp);
-
-      try {
-        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password); // auto-login di secondary
-        if (displayName) await updateProfile(cred.user, { displayName });
-
-        const batch = writeBatch(db);
-        batch.set(doc(db,'roles', cred.user.uid), { role, disabled: false }, { merge: true });
-        batch.set(doc(db,'users', cred.user.uid), {
-          email, displayName: displayName || '', role, createdAt: serverTimestamp(), disabled: false
-        }, { merge: true });
-        await batch.commit();
-
-        await signOut(secondaryAuth);
-        await deleteApp(secondaryApp);
-
-        alert('User dibuat. Minta user login dan segera ganti password.');
-        form.reset(); hideModal();
-      } catch (err) {
-        console.error(err);
-        alert(`Gagal membuat user: ${err?.code || err?.message || err}`);
-        try { await signOut(secondaryAuth); await deleteApp(secondaryApp); } catch {}
-      }
-    });
-  }	
-	</script>
+</script>
 </body>
 </html>
