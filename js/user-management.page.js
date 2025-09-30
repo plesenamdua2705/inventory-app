@@ -157,7 +157,7 @@ export function initUserManagementPage() {
       const email       = form.email?.value?.trim();
       const password    = form.password?.value;
       const displayName = form.displayName?.value?.trim();
-      const role        = form.querySelector('input[name="role"]:checked')?.value || 'viewer';
+      const role = form.querySelector('select[name="role"]')?.value ?? 'viewer';
 
       if (!email || !password) { alert('Email & password wajib diisi'); return; }
 
