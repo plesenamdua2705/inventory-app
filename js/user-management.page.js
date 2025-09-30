@@ -41,7 +41,7 @@ import {
  * ========================= */
 const $ = (sel, parent=document) => parent.querySelector(sel);
 
-function show(el) { if (!el) return; el.classList?.remove(UI.hiddenClass); el.style.display = 'block'; }
+function show(el) { if (!el) return; el.classList?.remove(UI.hiddenClass); el.style.display = 'block'; el.setAttribute('aria-hidden', 'false'); }
 function hide(el) { if (!el) return; el.classList?.add(UI.hiddenClass);  el.style.display = 'none'; }
 
 const fmt = (ts) => { try { return ts?.toDate ? ts.toDate().toLocaleString() : '-'; } catch { return '-'; } };
