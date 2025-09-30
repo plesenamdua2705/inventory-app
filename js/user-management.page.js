@@ -110,7 +110,8 @@ async function getFreshSecondaryApp() {
 export function initUserManagementPage() {
   const btnAdd   = $(UI.btnAdd);
   const modal    = $(UI.modal);
-  const btnClose = $(UI.btnClose1) || $(UI.btnClose2);
+  const btnClose1 = $(UI.btnClose1);
+  const btnClose2 = $(UI.btnClose2);
   const form     = $(UI.formAdd);
   const table    = $(UI.table);
   const tbody    = table?.querySelector('tbody');
@@ -122,7 +123,8 @@ export function initUserManagementPage() {
 
   // Open/Close modal
   btnAdd?.addEventListener('click', () => show(modal));
-  btnClose?.addEventListener('click', () => hide(modal));
+  btnClose1?.addEventListener('click', () => hide(modal));
+  btnClose2?.addEventListener('click', () => hide(modal));
 
   // Auth guard minimal (redirect ke login jika belum login)
   onAuthStateChanged(auth, async (user) => {
