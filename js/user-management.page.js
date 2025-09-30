@@ -64,9 +64,9 @@ function renderRow(u) {
     <td>${fmt(u.createdAt)}</td>
     <td>${fmt(u.updatedAt)}</td>
     <td>
-      <button class="btn-edit"   data-uid="${u.id}">Edit</button>
-      <button class="btn-reset"  data-email="${u.email}">Reset Password</button>
-      <button class="btn-delete" data-uid="${u.id}">Delete</button>
+      <button class="btn btn-outline-secondary btn-edit"   data-uid="${u.id}">Edit</button>
+      <button class="btn btn-outline-info btn-reset"  data-email="${u.email}">Reset Password</button>
+      <button class="btn btn-outline-danger btn-delete" data-uid="${u.id}">Delete</button>
     </td>
   `;
   return tr;
