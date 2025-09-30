@@ -241,7 +241,7 @@
   import { mountUserMenu } from './js/user-menu.js';
   import { app, auth, db } from './js/firebase-init.js';
   import { initUserManagementPage } from './js/user-management.page.js';
-  initUserManagementPage()
+  document.addEventListener('DOMContentLoaded', initUserManagementPage);
 
 	mountUserMenu({
     rootSelector: '#user-menu-root',
