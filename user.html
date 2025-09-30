@@ -145,17 +145,17 @@
                         <div class="card-header py-3">
 						
 							<!-- Modal Content popup Form-->
-							<button id="btnAddUser" type="button" class="btn btn-primary mb-1" data-toggle="modal">Add New User</button>
+							<button id="btnAdd" type="button" class="btn btn-primary mb-1" data-toggle="modal">Add New User</button>
 							
 							
-							<div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
+							<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
 								<div class="modal-dialog" role="document">
-									<form id="addUserForm">
+									<form id="form">
 										<div class="modal-content">
 											<div class="modal-header">
 												<h5 class="modal-title" id="addUserModal">Add New User</h5>
 												
-												<button id= "btnCloseModal" type="button" class="close" data-dismiss="modal" aria-label="Close">
+												<button id= "btnClose" type="button" class="close" data-dismiss="modal" aria-label="Close">
 													<span aria-hidden="true">&times;</span>
 												</button>
 											</div>
@@ -213,7 +213,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
                 <!-- /.container-fluid -->
 
@@ -229,10 +228,7 @@
                 </div>
             </footer>
             <!-- End of Footer -->
-
         </div>
-        <!-- End of Content Wrapper -->
-
     </div>
     <!-- End of Page Wrapper -->
 
@@ -252,7 +248,7 @@
     rootSelector: '#user-menu-root',
     profileUrl: './profile.html',
     aboutUrl: './about.html',
-    loginUrl: './login_main.html'
+    loginUrl: './login_main.html',
   });
 </script>
 
