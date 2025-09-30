@@ -83,8 +83,8 @@ function enterEditRole(cell, uid, currentRole) {
       <option value="contributor" ${currentRole==='contributor'?'selected':''}>Contributor</option>
       <option value="admin" ${currentRole==='admin'?'selected':''}>Admin</option>
     </select>
-    <button class="btn-save"   data-uid="${uid}">Save</button>
-    <button class="btn-cancel" data-uid="${uid}">Cancel</button>
+    <button class="btn btn-success btn-sm btn-save"   data-uid="${uid}">Save</button>
+    <button class="btn btn-secondary btn-sm btn-cancel" data-uid="${uid}">Cancel</button>
   `;
 }
 
