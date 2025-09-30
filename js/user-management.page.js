@@ -15,7 +15,7 @@ const UI = {
   btnClose2:     '#btnCloseModal2',
   formAdd:       '#addUserForm',
   table:         '#userTable',
-  hiddenClass:   'hidden',     // ganti jika pakai 'd-none' atau yang lain
+
 };
 
 /* =========================
