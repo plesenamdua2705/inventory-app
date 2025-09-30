@@ -6205,6 +6205,10 @@ a.close.disabled {
     padding: .75rem
 }
 
+.hidden { 
+	display: none !important; 
+	}
+
 .modal-open {
     overflow: hidden
 }
