@@ -9,7 +9,7 @@
  * 0) KONFIG SELECTOR (ubah jika ID di HTML berbeda)
  * ========================= */
 const UI = {
-  btnAdd:        '#btnAddNew',
+  btnAdd:        '#btnAddUser',
   modal:         '#addUserModal',
   btnClose1:     '#btnCloseModal',
   btnClose2:     '#btnCloseModal2',
