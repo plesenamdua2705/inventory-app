@@ -62,7 +62,7 @@ function renderRow(u) {
     </td>
     <td class="status" data-uid="${u.id}">${statusText}</td>
     <td>${fmt(u.createdAt)}</td>
-    <td>${fmt(u.lastSignInTime)}</td>
+    <td>${fmt(u.updatedAt)}</td>
     <td>
       <button class="btn-edit"   data-uid="${u.id}">Edit</button>
       <button class="btn-reset"  data-email="${u.email}">Reset Password</button>
