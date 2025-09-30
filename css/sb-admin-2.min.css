@@ -2691,6 +2691,10 @@ fieldset:disabled a.btn {
     pointer-events: none
 }
 
+.btn-action {
+  margin-right: 8px; /* atau 4px, 12px sesuai kebutuhan */
+}
+
 .btn-primary {
     color: #fff;
     background-color: #4e73df;
