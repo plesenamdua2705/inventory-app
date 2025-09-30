@@ -6,7 +6,7 @@
 'use strict';
 
 /* =========================
- * 0) KONFIG SELECTOR (ubah jika ID di HTML berbeda)
+ * 0) KONFIG SELECTOR (ID tag di HTML)
  * ========================= */
 const UI = {
   btnAdd:        '#btnAddUser',
@@ -93,7 +93,7 @@ function exitEditRole(cell, newRoleText) {
 }
 
 /* =========================
- * 4) SECONDARY APP (untuk Add User tanpa logout admin)
+ * 4) SECONDARY APP (Add User tanpa logout admin)
  * ========================= */
 const SECONDARY_NAME = 'SecondaryAuth';
 
@@ -158,6 +158,9 @@ export function initUserManagementPage() {
       const password    = form.password?.value;
       const displayName = form.displayName?.value?.trim();
       const role = form.querySelector('select[name="role"]')?.value ?? 'viewer';
+
+      // Log event submit
+      console.log('Form submitted with:', { email, password, displayName, role });
 
       if (!email || !password) { alert('Email & password wajib diisi'); return; }
 
