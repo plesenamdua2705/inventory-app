@@ -236,6 +236,21 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
+	
+	<script>
+	  document.addEventListener('DOMContentLoaded', () => {
+	    const toggleBtn = document.getElementById('togglePassword');
+	    const passwordInput = document.getElementById('passwordInput');
+	
+	    toggleBtn.addEventListener('click', () => {
+	      const isHidden = passwordInput.type === 'password';
+	      passwordInput.type = isHidden ? 'text' : 'password';
+	      toggleBtn.textContent = isHidden ? '🙈' : '👁️'; // Ganti ikon jika mau
+	    });
+	  });
+	</script>
+
+
 	<!-- User Management Page JS -->
 	<script type="module">
 	  import { mountUserMenu } from './js/user-menu.js';
