@@ -145,17 +145,17 @@
                         <div class="card-header py-3">
 						
 							<!-- Modal Content popup Form-->
-							<button id="btnAdd" type="button" class="btn btn-primary mb-1" data-toggle="modal">Add New User</button>
+							<button id="btnAddNew" type="button" class="btn btn-primary mb-1" data-toggle="addUserModal">Add New User</button>
 							
 							
-							<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="addSouvenirModalLabel" aria-hidden="true">
+							<div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModal" aria-hidden="true">
 								<div class="modal-dialog" role="document">
-									<form id="form">
+									<form id="addUserForm">
 										<div class="modal-content">
 											<div class="modal-header">
 												<h5 class="modal-title" id="addUserModal">Add New User</h5>
 												
-												<button id= "btnClose" type="button" class="close" data-dismiss="modal" aria-label="Close">
+												<button id= "btnCloseModal" type="button" class="close" data-dismiss="modal" aria-label="Close">
 													<span aria-hidden="true">&times;</span>
 												</button>
 											</div>
@@ -184,7 +184,7 @@
 												</div>
 											</div>
 											<div class="modal-footer">
-												<button type="button" id= "btnClose2" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+												<button type="button" id= "btnCloseModal2" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
 												<button type="submit" class="btn btn-primary">Create</button>
 											</div>
 										</div>
@@ -196,7 +196,7 @@
 						<!-- Tabel User -->
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id= "userTable" class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <table id= "userTable" class="table table-bordered" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
                                             <th>Email</th>
