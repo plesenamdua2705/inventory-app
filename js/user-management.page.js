@@ -64,11 +64,11 @@ function renderRow(u) {
     <td>${fmt(u.createdAt)}</td>
     <td>${fmt(u.updatedAt)}</td>
     <td>
-      <div style="display: flex; gap: 4px;">
-        <button class="btn btn-outline-secondary btn-edit"   data-uid="${u.id}">Edit</button>
-        <button class="btn btn-outline-info btn-reset"  data-email="${u.email}">Reset Password</button>
-        <button class="btn btn-outline-danger btn-delete" data-uid="${u.id}">Delete</button>
-      </div>
+      
+        <button class="btn btn-outline-secondary btn-sm btn-edit"   data-uid="${u.id}">Edit</button>
+        <button class="btn btn-outline-info btn-sm btn-reset"  data-email="${u.email}">Reset Password</button>
+        <button class="btn btn-outline-danger btn-sm btn-delete" data-uid="${u.id}">Delete</button>
+      
     </td>
   `;
   return tr;
