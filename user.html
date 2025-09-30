@@ -236,20 +236,19 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
-<!-- User Management Page JS -->
-<script type="module">
-  import { mountUserMenu } from './js/user-menu.js';
-  import { app, auth, db } from './js/firebase-init.js';
-  import { initUserManagementPage } from './js/user-management.page.js';
-  document.addEventListener('DOMContentLoaded', initUserManagementPage);
-
-	mountUserMenu({
-    rootSelector: '#user-menu-root',
-    profileUrl: './profile.html',
-    aboutUrl: './about.html',
-    loginUrl: './login_main.html',
-  });
-</script>
+	<!-- User Management Page JS -->
+	<script type="module">
+	  import { mountUserMenu } from './js/user-menu.js';
+	  import { initUserManagementPage } from './js/user-management.page.js';
+	  document.addEventListener('DOMContentLoaded', initUserManagementPage);
+	
+		mountUserMenu({
+	    rootSelector: '#user-menu-root',
+	    profileUrl: './profile.html',
+	    aboutUrl: './about.html',
+	    loginUrl: './login_main.html',
+	  });
+	</script>
 
 
     <!-- Bootstrap core JavaScript-->
