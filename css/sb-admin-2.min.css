@@ -2125,19 +2125,20 @@ pre code {
   padding-right: 2.25rem; /* space untuk tombol ikon */
 }
 
-/* Tombol ikon di dalam input */
+
+/* Tombol ikon: penuhi tinggi wrapper (top:0; bottom:0), lalu center dengan grid */
 .pw-toggle {
   position: absolute;
-  right: .5rem;
-  top: 50%;
-  transform: translateY(-0.5px);
-  width: 1.75rem;
-  height: 1.75rem;
+  inset-block: 0;                   /* sama dengan: top:0; bottom:0;  */
+  inset-inline-end: .5rem;          /* right pada LTR, left pada RTL */
+  width: 2rem;                      /* lebar area klik */
+  display: grid;
+  place-items: center;              /* ini yang bikin vertikal benar-benar center */
   border: none;
   background: transparent;
   cursor: pointer;
   padding: 0;
-  color: #6b7280; /* warna ikon (ikut currentColor) */
+  color: #6b7280;                   /* warna ikon (CSS mask pakai currentColor) */
 }
 
 .pw-toggle:hover { color: #374151; }
@@ -2147,12 +2148,12 @@ pre code {
   border-radius: 4px;
 }
 
-/* Ikon default: eye (tertutup), saat aktif: eye-slash */
+/* Ikon default: eye; saat aktif: eye-slash */
 .pw-toggle::before {
   content: "";
   display: block;
-  width: 20px;
-  height: 20px;
+  inline-size: 20px;                /* width */
+  block-size: 20px;                 /* height */
   background: currentColor;
   -webkit-mask: url("/vendor/fontawesome-free/svgs/regular/eye.svg") no-repeat center / contain;
           mask: url("/vendor/fontawesome-free/svgs/regular/eye.svg") no-repeat center / contain;
@@ -2163,12 +2164,16 @@ pre code {
           mask-image: url("/vendor/fontawesome-free/svgs/regular/eye-slash.svg");
 }
 
+/* (Opsional) kalau input Bootstraps: override pad kanan agar tidak saling timpa */
+.form-control.pw-input {
+  padding-right: 2.5rem !important;
+}
+
 .form-control {
     display: block;
     width: 100%;
     height: calc(1.5em + .75rem + 2px);
     padding: .375rem .75rem;
-	padding-right: 2.25rem;
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
@@ -2179,6 +2184,13 @@ pre code {
     border-radius: .35rem;
     transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out
 }
+
+
+.form-group .form-control {
+  box-sizing: border-box;          
+  padding-inline-end: 2.5rem;
+}
+
 
 @media (prefers-reduced-motion:reduce) {
     .form-control {
