@@ -52,13 +52,12 @@ function resetAddUserForm(form) {
   // Pastikan tipe password kembali menjadi 'password'
   const pwd = form.querySelector('input[name="password"]');
   if (pwd) pwd.type = 'password';
-
-  // Reset tombol toggle (jika ada)
   const toggle = form.querySelector('[data-pw-toggle]');
   if (toggle) {
     toggle.setAttribute('aria-pressed', 'false');
     toggle.classList.remove('is-on');
   }
+
 
   // (Opsional) bersihkan pesan validasi custom bila ada
   // Array.from(form.elements).forEach(el => el.setCustomValidity?.(''));
