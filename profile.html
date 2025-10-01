@@ -158,36 +158,38 @@
 								<div class="card-header py-3">
 									<h6 class="m-0 font-weight-bold text-primary">Change Profile</h6>
 								</div>
-								<section id="profile-edit">
-								  <h6>Ubah Nama Tampil</h6>
-								  <form id="formDisplayName" novalidate>
-									<label for="displayName">Display Name</label>
-									<input id="displayName" name="displayName" type="text" />
-									<button type="submit">Save</button>
-								  </form>
-								  <div id="msgName" role="status" style="display:none;"></div>
-								</section>
+								<div class="card-body">
+									<section id="profile-edit">
+									  <h6>Ubah Nama Tampil</h6>
+									  <form id="formDisplayName" novalidate>
+										<label for="displayName">Display Name</label>
+										<input id="displayName" name="displayName" type="text" />
+										<button type="submit">Save</button>
+									  </form>
+									  <div id="msgName" role="status" style="display:none;"></div>
+									</section>
 								
-								<section id="password-change">
-								  <h4>Ganti Password</h4>
-								  <form id="formPassword" novalidate>
-									<label for="currentPassword">Password saat ini</label>
-									<input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required />
-								
-									<label for="newPassword">Password baru</label>
-									<input id="newPassword" name="newPassword" type="password" autocomplete="new-password" required />
-								
-									<label for="confirmPassword">Konfirmasi password baru</label>
-									<input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required />
-								
-									<button type="submit">Ubah Password</button>
-								  </form>
-								  <div id="msgPwd" role="status" style="display:none;"></div>
-								
-								  <!-- (Opsional) Alternatif: kirim email reset -->
-								  <p><button id="btnResetEmail" type="button">Kirim tautan reset ke email saya</button></p>
-								  <div id="msgReset" role="status" style="display:none;"></div>
-								</section>
+									<section id="password-change">
+									  <h4>Ganti Password</h4>
+									  <form id="formPassword" novalidate>
+										<label for="currentPassword">Password saat ini</label>
+										<input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required />
+									
+										<label for="newPassword">Password baru</label>
+										<input id="newPassword" name="newPassword" type="password" autocomplete="new-password" required />
+									
+										<label for="confirmPassword">Konfirmasi password baru</label>
+										<input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required />
+									
+										<button type="submit">Ubah Password</button>
+									  </form>
+									  <div id="msgPwd" role="status" style="display:none;"></div>
+									
+									  <!-- (Opsional) Alternatif: kirim email reset -->
+									  <p><button id="btnResetEmail" type="button">Kirim tautan reset ke email saya</button></p>
+									  <div id="msgReset" role="status" style="display:none;"></div>
+									</section>
+								</div>
 							</div>
 						</div>
 					</div>
