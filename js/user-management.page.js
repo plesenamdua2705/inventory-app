@@ -161,7 +161,7 @@ export function initUserManagementPage() {
     hide(modal);
   });
 
-  // === Toggle Show/Hide Password (letakkan DI SINI, sebelum onAuthStateChanged) ===
+  // === Toggle Show/Hide Password ===
   const btnTogglePwd = form?.querySelector('[data-pw-toggle]');
   if (btnTogglePwd && form) {
     btnTogglePwd.addEventListener('click', () => {
@@ -171,13 +171,17 @@ export function initUserManagementPage() {
       const toShow = pwd.type === 'password';
       pwd.type = toShow ? 'text' : 'password';
   
-      // Aksesibilitas & state UI
+      // Aksesibilitas + state visual (ikon eye/eye-slash via CSS)
       btnTogglePwd.setAttribute('aria-pressed', String(toShow));
+      btnTogglePwd.setAttribute('aria-label', toShow ? 'Sembunyikan password' : 'Tampilkan password');
       btnTogglePwd.classList.toggle('is-on', toShow);
   
-      // Ubah label tombol (opsional)
-      const lbl = btnTogglePwd.querySelector('.eye-label') || btnTogglePwd;
-      lbl.textContent = toShow ? 'Hide' : 'Show';
+      // Kembalikan fokus & caret
+      pwd.focus({ preventScroll: true });
+      try {
+        const len = pwd.value.length;
+        pwd.setSelectionRange(len, len);
+      } catch {}
     });
   }
 
