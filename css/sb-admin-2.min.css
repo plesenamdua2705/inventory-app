@@ -2323,6 +2323,7 @@ textarea.form-control {
 
 .form-group {
     margin-bottom: 1rem
+	position: relative;
 }
 
 .form-text {
