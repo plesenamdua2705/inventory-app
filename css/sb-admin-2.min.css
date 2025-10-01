@@ -2120,6 +2120,50 @@ pre code {
     border: 0
 }
 
+/* Wrapper & ruang buat ikon di kanan */
+.input-with-icon { position: relative; }
+.input-with-icon .pw-input {
+  padding-right: 2.25rem; /* space untuk tombol ikon */
+}
+
+/* Tombol ikon di dalam input */
+.pw-toggle {
+  position: absolute;
+  right: .5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  color: #6b7280; /* warna ikon (ikut currentColor) */
+}
+
+.pw-toggle:hover { color: #374151; }
+.pw-toggle:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Ikon default: eye (tertutup), saat aktif: eye-slash */
+.pw-toggle::before {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  -webkit-mask: url("/vendor/fontawesome-free/svgs/regular/eye.svg") no-repeat center / contain;
+          mask: url("/vendor/fontawesome-free/svgs/regular/eye.svg") no-repeat center / contain;
+}
+
+.pw-toggle.is-on::before {
+  -webkit-mask-image: url("/vendor/fontawesome-free/svgs/regular/eye-slash.svg");
+          mask-image: url("/vendor/fontawesome-free/svgs/regular/eye-slash.svg");
+}
+
 .form-control {
     display: block;
     width: 100%;
