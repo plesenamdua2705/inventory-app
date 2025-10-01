@@ -2152,7 +2152,7 @@ pre code {
   cursor: pointer;
   line-height: 0;
   color: var(--bs-secondary-color, #6c757d);
-  transform: translateY(-2px);   /* nudge vertikal */
+  transform: translateY(4px);   /* nudge vertikal */
 }
 
 /* Jika masih ada sisa teks (mis. <span class="eye-label">Show</span>), paksa sembunyi */
