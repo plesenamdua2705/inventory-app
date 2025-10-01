@@ -2121,7 +2121,6 @@ pre code {
 }
 
 /* Wrapper & ruang buat ikon di kanan */
-.input-with-icon { position: relative; }
 .input-with-icon .pw-input {
   padding-right: 2.25rem; /* space untuk tombol ikon */
 }
@@ -2169,6 +2168,7 @@ pre code {
     width: 100%;
     height: calc(1.5em + .75rem + 2px);
     padding: .375rem .75rem;
+	padding-right: 2.25rem;
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
