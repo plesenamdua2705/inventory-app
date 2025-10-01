@@ -2120,54 +2120,91 @@ pre code {
     border: 0
 }
 
-/* Wrapper & ruang buat ikon di kanan */
-.input-with-icon .pw-input {
-  padding-right: 2.25rem; /* space untuk tombol ikon */
+/* ===== Password toggle (SB Admin 2 / Bootstrap 4.6) ===== */
+
+/* Wrapper mengikuti tinggi input */
+.input-with-icon {
+  position: relative;
+  display: block;
+  --pw-icon-size: 1.125rem;   /* ≈18px untuk .form-control normal */
+  --pw-right-pad: 2.75rem;    /* ruang kanan untuk tombol ikon */
+  --pw-nudge-y: 0px;          /* tweak halus vertikal bila perlu (mis. -0.5px) */
 }
 
+/* Tambah ruang kanan agar teks tidak tertutup ikon */
+.input-with-icon .pw-input.form-control {
+  box-sizing: border-box;
+  padding-right: var(--pw-right-pad) !important;
+}
 
-/* Tombol ikon: penuhi tinggi wrapper (top:0; bottom:0), lalu center dengan grid */
-.pw-toggle {
+/* Tombol ikon memenuhi tinggi wrapper, center pakai flex */
+.input-with-icon .pw-toggle {
   position: absolute;
-  inset-block: 0;                   /* sama dengan: top:0; bottom:0;  */
-  inset-inline-end: .5rem;          /* right pada LTR, left pada RTL */
-  width: 2rem;                      /* lebar area klik */
-  display: grid;
-  place-items: center;              /* ini yang bikin vertikal benar-benar center */
-  border: none;
+  top: 0;
+  bottom: 0;
+  right: .75rem;              /* jarak ke tepi kanan input */
+  width: 2.25rem;             /* area klik yang nyaman */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  border: 0;
   background: transparent;
-  cursor: pointer;
   padding: 0;
-  color: #6b7280;                   /* warna ikon (CSS mask pakai currentColor) */
+  cursor: pointer;
+  color: var(--bs-secondary-color, #6c757d); /* SB Admin 2 secondary tone */
+  transform: translateY(var(--pw-nudge-y));
 }
 
-.pw-toggle:hover { color: #374151; }
-.pw-toggle:focus-visible {
+/* Fokus aksesibel (mirip feel Bootstrap) */
+.input-with-icon .pw-toggle:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: .375rem;
 }
 
-/* Ikon default: eye; saat aktif: eye-slash */
-.pw-toggle::before {
+/* Ikon via CSS mask dari file SVG lokal Font Awesome */
+.input-with-icon .pw-toggle::before {
   content: "";
   display: block;
-  inline-size: 20px;                /* width */
-  block-size: 20px;                 /* height */
+  width: var(--pw-icon-size);
+  height: var(--pw-icon-size);
   background: currentColor;
   -webkit-mask: url("/vendor/fontawesome-free/svgs/regular/eye.svg") no-repeat center / contain;
           mask: url("/vendor/fontawesome-free/svgs/regular/eye.svg") no-repeat center / contain;
 }
 
-.pw-toggle.is-on::before {
+/* Saat “show” aktif => eye-slash */
+.input-with-icon .pw-toggle.is-on::before {
   -webkit-mask-image: url("/vendor/fontawesome-free/svgs/regular/eye-slash.svg");
           mask-image: url("/vendor/fontawesome-free/svgs/regular/eye-slash.svg");
 }
 
-/* (Opsional) kalau input Bootstraps: override pad kanan agar tidak saling timpa */
-.form-control.pw-input {
-  padding-right: 2.5rem !important;
+/* ===== Varian ukuran Bootstrap ===== */
+
+/* .form-control-sm => ikon sedikit lebih kecil & padding kanan dikurangi */
+.input-with-icon .form-control.pw-input.form-control-sm {
+  --pw-icon-size: 1rem;       /* 16px */
+  --pw-right-pad: 2.5rem;
 }
+
+/* .form-control-lg => ikon sedikit lebih besar & padding kanan diperbesar */
+.input-with-icon .form-control.pw-input.form-control-lg {
+  --pw-icon-size: 1.25rem;    /* 20px */
+  --pw-right-pad: 3rem;
+}
+
+/* ===== Status valid/invalid (Bootstrap menaruh ikon validasi di sisi kanan) =====
+   Tambah sedikit padding-right agar tidak saling tindih dengan ikon valid/invalid bawaan. */
+.input-with-icon .pw-input.form-control.is-valid,
+.input-with-icon .pw-input.form-control.is-invalid,
+.input-with-icon .was-validated .pw-input.form-control:valid,
+.input-with-icon .was-validated .pw-input.form-control:invalid {
+  padding-right: calc(var(--pw-right-pad) + .5rem) !important;
+}
+
+/* (Opsional) Jika masih tampak turun/naik 1px karena perbedaan border/padding,
+   atur tweak halus di wrapper: style="--pw-nudge-y:-0.5px" pada div.input-with-icon */
 
 .form-control {
     display: block;
@@ -2184,13 +2221,6 @@ pre code {
     border-radius: .35rem;
     transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out
 }
-
-
-.form-group .form-control {
-  box-sizing: border-box;          
-  padding-inline-end: 2.5rem;
-}
-
 
 @media (prefers-reduced-motion:reduce) {
     .form-control {
