@@ -2130,7 +2130,7 @@ pre code {
   position: absolute;
   right: .5rem;
   top: 50%;
-  transform: translateY(-1px);
+  transform: translateY(-0.5px);
   width: 1.75rem;
   height: 1.75rem;
   border: none;
