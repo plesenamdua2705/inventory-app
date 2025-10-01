@@ -109,133 +109,112 @@
         <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
 
-            <!-- Main Content -->
-            <div id="content">
+			<!-- Main Content -->
+			<div id="content">
 
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+					<!-- Topbar -->
+					<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
 
-                    <!-- Sidebar Toggle (Topbar) -->
-                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                        <i class="fa fa-bars"></i>
-                    </button>
+						<!-- Sidebar Toggle (Topbar) -->
+						<button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+							<i class="fa fa-bars"></i>
+						</button>
+						
+						<!-- Topbar Navbar -->
+						<ul class="navbar-nav ml-auto">
+						<!-- Nav Item-Kanan-atas: user info dinamis -->
+						<div id="user-menu-root" class="nav-item dropdown no-arrow"></div>
+						</ul>
+					</nav>
+					<!-- End of Topbar -->
+
+					<!-- Begin Page Content -->
+				<div class="container-fluid">
+
+					<!-- Page Heading -->
+					<h1 class="h3 mb-4 text-gray-800">Profile</h1>
+						
+					<!-- Main Conten -->
+					<div class="row">
+						<!-- Profile Show -->
+							<div class="col-lg-6 mb-4">
+								<div class="card shadow mb-4">
+									<div class="card-header py-3">
+										<h6 class="m-0 font-weight-bold text-primary">Current Profile</h6>
+									</div>
+									<div class="card-body">
+										<section id="profile-view">
+										  <p><strong>Email:</strong> <span id="p-email">-</span></p>
+										  <p><strong>Display Name:</strong> <span id="p-name">-</span></p>
+										  <p><strong>Role:</strong> <span id="p-role">-</span></p>
+										</section>
+									</div>
+								</div>
+							</div>	
 					
-                    <!-- Topbar Navbar -->
-                    <ul class="navbar-nav ml-auto">
-					<!-- Nav Item-Kanan-atas: user info dinamis -->
-					<div id="user-menu-root" class="nav-item dropdown no-arrow"></div>
-                    </ul>
-                </nav>
-                <!-- End of Topbar -->
-
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-
-                    <!-- Page Heading -->
-                    <h1 class="h3 mb-4 text-gray-800">Profile</h1>
-					
-			<!-- Main Conten -->
-			<div class="row">
-				<!-- Profile Show -->
-					<div class="col-lg-6 mb-4">
-						<div class="card shadow mb-4">
-							<div class="card-header py-3">
-								<h6 class="m-0 font-weight-bold text-primary">Current Profile</h6>
-							</div>
-							<div class="card-body">
-								<section id="profile-view">
-								  <p><strong>Email:</strong> <span id="p-email">-</span></p>
-								  <p><strong>Display Name:</strong> <span id="p-name">-</span></p>
-								  <p><strong>Role:</strong> <span id="p-role">-</span></p>
+						<!-- Profile Edit -->
+						<div class="col-lg-6 mb-4">
+							<div class="card shadow mb-4">
+								<div class="card-header py-3">
+									<h6 class="m-0 font-weight-bold text-primary">Change Profile</h6>
+								</div>
+								<section id="profile-edit">
+								  <h6>Ubah Nama Tampil</h6>
+								  <form id="formDisplayName" novalidate>
+									<label for="displayName">Display Name</label>
+									<input id="displayName" name="displayName" type="text" />
+									<button type="submit">Save</button>
+								  </form>
+								  <div id="msgName" role="status" style="display:none;"></div>
+								</section>
+								
+								<section id="password-change">
+								  <h4>Ganti Password</h4>
+								  <form id="formPassword" novalidate>
+									<label for="currentPassword">Password saat ini</label>
+									<input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required />
+								
+									<label for="newPassword">Password baru</label>
+									<input id="newPassword" name="newPassword" type="password" autocomplete="new-password" required />
+								
+									<label for="confirmPassword">Konfirmasi password baru</label>
+									<input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required />
+								
+									<button type="submit">Ubah Password</button>
+								  </form>
+								  <div id="msgPwd" role="status" style="display:none;"></div>
+								
+								  <!-- (Opsional) Alternatif: kirim email reset -->
+								  <p><button id="btnResetEmail" type="button">Kirim tautan reset ke email saya</button></p>
+								  <div id="msgReset" role="status" style="display:none;"></div>
 								</section>
 							</div>
 						</div>
-					</div>	
-				
-				<!-- Profile Edit -->
-				<div class="col-lg-6 mb-4">
-					<div class="card shadow mb-4">
-						<div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Change Profile</h6>
-                        </div>
-						<section id="profile-edit">
-						  <h4>Ubah Nama Tampil</h4>
-						  <form id="formDisplayName" novalidate>
-							<label for="displayName">Display Name</label>
-							<input id="displayName" name="displayName" type="text" />
-							<button type="submit">Save</button>
-						  </form>
-						  <div id="msgName" role="status" style="display:none;"></div>
-						</section>
-						
-						<section id="password-change">
-						  <h4>Ganti Password</h4>
-						  <form id="formPassword" novalidate>
-							<label for="currentPassword">Password saat ini</label>
-							<input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required />
-						
-							<label for="newPassword">Password baru</label>
-							<input id="newPassword" name="newPassword" type="password" autocomplete="new-password" required />
-						
-							<label for="confirmPassword">Konfirmasi password baru</label>
-							<input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required />
-						
-							<button type="submit">Ubah Password</button>
-						  </form>
-						  <div id="msgPwd" role="status" style="display:none;"></div>
-						
-						  <!-- (Opsional) Alternatif: kirim email reset -->
-						  <p><button id="btnResetEmail" type="button">Kirim tautan reset ke email saya</button></p>
-						  <div id="msgReset" role="status" style="display:none;"></div>
-						</section>
 					</div>
+					<!-- /.container-fluid -->
 				</div>
-            </div>
-                <!-- /.container-fluid -->
+			</div>
+			<!-- End of Main Content -->
 
-            </div>
-            <!-- End of Main Content -->
-
-            <!-- Footer -->
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Production System Management 2025</span>
-                    </div>
-                </div>
-            </footer>
-            <!-- End of Footer -->
-
+				<!-- Footer -->
+				<footer class="sticky-footer bg-white">
+					<div class="container my-auto">
+						<div class="copyright text-center my-auto">
+							<span>Copyright &copy; Production System Management 2025</span>
+						</div>
+					</div>
+				</footer>
+				<!-- End of Footer -->
         </div>
         <!-- End of Content Wrapper -->
 
-    </div>
+	</div>
     <!-- End of Page Wrapper -->
 
     <!-- Scroll to Top Button-->
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
-
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login_main.html">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
 	
 	<script type="module">
 	  import { guardPage } from '/js/auth-guard.js';
