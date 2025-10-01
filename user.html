@@ -165,13 +165,25 @@
 													<label>Email</label>
 													<input name="email" type="email" class="form-control" required />
 												</div>
-												<div class="form-group">
-													<label>Password</label>
-														<input name="password" type="password" id="addPassword" class="form-control" required />
-														
-														<!-- Tombol toggle show/hide -->
-														<button type="button" class="pw-toggle" aria-label="Tampilkan password" aria-pressed="false" data-pw-toggle>
-														</button>
+												<!-- Wrapper Password dengan ikon di dalam input (Bootstrap 4 / SB Admin 2) -->
+												<div class="form-group position-relative input-with-icon">
+												  <label for="addPassword">Password</label>
+												  <input
+												    type="password"
+												    name="password"
+												    id="addPassword"
+												    required
+												    minlength="6"
+												    autocomplete="new-password"
+												    class="form-control pw-input"  <!-- gunakan form-control-sm / -lg sesuai kebutuhan -->
+												  />
+												  <button
+												    type="button"
+												    class="pw-toggle"
+												    data-pw-toggle
+												    aria-label="Tampilkan password"
+												    aria-pressed="false">
+												  </button>
 												</div>
 												<div class="form-group">
 													<label>Nama (opsional)</label>
