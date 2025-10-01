@@ -2127,7 +2127,7 @@ pre code {
   display: block;
   --pw-icon-size: 1.125rem;  /* ≈18px untuk .form-control normal */
   --pw-right-pad: 2.75rem;   /* ruang kanan agar teks tidak ketutup ikon */
-  --pw-nudge-y: 2px;         /* tweak vertikal (+ ke bawah, - ke atas) */
+  --pw-nudge-y: 1px;         /* tweak vertikal (+ ke bawah, - ke atas) */
 }
 
 /* Tambahkan padding kanan supaya teks tidak tertutup tombol */
@@ -2152,7 +2152,7 @@ pre code {
   cursor: pointer;
   line-height: 0;
   color: var(--bs-secondary-color, #6c757d);
-  transform: translateY(var(--pw-nudge-y));   /* nudge vertikal */
+  transform: translateY(2px);   /* nudge vertikal */
 }
 
 /* Jika masih ada sisa teks (mis. <span class="eye-label">Show</span>), paksa sembunyi */
