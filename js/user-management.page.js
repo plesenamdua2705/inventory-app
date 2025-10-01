@@ -43,6 +43,28 @@ const $ = (sel, parent=document) => parent.querySelector(sel);
 
 function show(el) { if (!el) return; el.classList?.remove(UI.hiddenClass); el.style.display = 'block'; el.setAttribute('aria-hidden', 'false'); }
 function hide(el) { if (!el) return; el.classList?.add(UI.hiddenClass);  el.style.display = 'none'; }
+function resetAddUserForm(form) {
+  if (!form) return;
+
+  // Reset nilai field
+  form.reset();
+
+  // Pastikan tipe password kembali menjadi 'password'
+  const pwd = form.querySelector('input[name="password"]');
+  if (pwd) pwd.type = 'password';
+
+  // Reset tombol toggle (jika ada)
+  const toggle = form.querySelector('[data-pw-toggle]');
+  if (toggle) {
+    toggle.setAttribute('aria-pressed', 'false');
+    toggle.classList.remove('is-on');
+    const lbl = toggle.querySelector('.eye-label') || toggle;
+    if (lbl) lbl.textContent = 'Show';
+  }
+
+  // (Opsional) bersihkan pesan validasi custom bila ada
+  // Array.from(form.elements).forEach(el => el.setCustomValidity?.(''));
+}
 
 const fmt = (ts) => { try { return ts?.toDate ? ts.toDate().toLocaleString() : '-'; } catch { return '-'; } };
 
@@ -124,18 +146,49 @@ export function initUserManagementPage() {
   }
 
   // Open/Close modal
-  btnAdd?.addEventListener('click', () => show(modal));
-  btnClose1?.addEventListener('click', () => hide(modal));
-  btnClose2?.addEventListener('click', () => hide(modal));
+  btnAdd?.addEventListener('click', () => {
+    resetAddUserForm(form);
+    show(modal);
+  });
+  
+  btnClose1?.addEventListener('click', () => {
+    resetAddUserForm(form);
+    hide(modal);
+  });
+  
+  btnClose2?.addEventListener('click', () => {
+    resetAddUserForm(form);
+    hide(modal);
+  });
+
+  // === Toggle Show/Hide Password (letakkan DI SINI, sebelum onAuthStateChanged) ===
+  const btnTogglePwd = form?.querySelector('[data-pw-toggle]');
+  if (btnTogglePwd && form) {
+    btnTogglePwd.addEventListener('click', () => {
+      const pwd = form.querySelector('input[name="password"]');
+      if (!pwd) return;
+  
+      const toShow = pwd.type === 'password';
+      pwd.type = toShow ? 'text' : 'password';
+  
+      // Aksesibilitas & state UI
+      btnTogglePwd.setAttribute('aria-pressed', String(toShow));
+      btnTogglePwd.classList.toggle('is-on', toShow);
+  
+      // Ubah label tombol (opsional)
+      const lbl = btnTogglePwd.querySelector('.eye-label') || btnTogglePwd;
+      lbl.textContent = toShow ? 'Hide' : 'Show';
+    });
+  }
 
   // Auth guard minimal (redirect ke login jika belum login)
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'login_main.html'; return; }
 
-    // (Opsional) cek dokumen user login (selaras rules Mas)
+  // (Opsional) cek dokumen user login (selaras rules Mas)
     try { await getDoc(doc(db, 'users', user.uid)); } catch {}
 
-    // LIST: rules Mas umumnya hanya admin boleh list users -> jika error, tampilkan pesan
+  // LIST: rules Mas umumnya hanya admin boleh list users -> jika error, tampilkan pesan
     const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
     onSnapshot(qUsers, {
       next: (snap) => {
