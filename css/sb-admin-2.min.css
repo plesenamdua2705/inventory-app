@@ -2120,50 +2120,53 @@ pre code {
     border: 0
 }
 
-/* ===== Password toggle (SB Admin 2 / Bootstrap 4.6) ===== */
+/* ===== Password toggle untuk SB Admin 2 / Bootstrap 4 ===== */
 
-/* Wrapper mengikuti tinggi input */
 .input-with-icon {
   position: relative;
   display: block;
-  --pw-icon-size: 1.125rem;   /* ≈18px untuk .form-control normal */
-  --pw-right-pad: 2.75rem;    /* ruang kanan untuk tombol ikon */
-  --pw-nudge-y: -0.5px;          /* tweak halus vertikal bila perlu (mis. -0.5px) */
+  --pw-icon-size: 1.125rem;  /* ≈18px untuk .form-control normal */
+  --pw-right-pad: 2.75rem;   /* ruang kanan agar teks tidak ketutup ikon */
+  --pw-nudge-y: 0px;         /* tweak vertikal (+ ke bawah, - ke atas) */
 }
 
-/* Tambah ruang kanan agar teks tidak tertutup ikon */
+/* Tambahkan padding kanan supaya teks tidak tertutup tombol */
 .input-with-icon .pw-input.form-control {
   box-sizing: border-box;
   padding-right: var(--pw-right-pad) !important;
 }
 
-/* Tombol ikon memenuhi tinggi wrapper, center pakai flex */
+/* Tombol memenuhi tinggi input dan center pakai flex */
 .input-with-icon .pw-toggle {
   position: absolute;
   top: 0;
   bottom: 0;
-  right: .75rem;              /* jarak ke tepi kanan input */
-  width: 2.25rem;             /* area klik yang nyaman */
+  right: .75rem;
+  width: 2.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 0;
   border: 0;
   background: transparent;
   padding: 0;
   cursor: pointer;
-  color: var(--bs-secondary-color, #6c757d); /* SB Admin 2 secondary tone */
-  transform: translateY(var(--pw-nudge-y));
+  line-height: 0;
+  color: var(--bs-secondary-color, #6c757d);
+  transform: translateY(var(--pw-nudge-y));   /* nudge vertikal */
 }
 
-/* Fokus aksesibel (mirip feel Bootstrap) */
+/* Jika masih ada sisa teks (mis. <span class="eye-label">Show</span>), paksa sembunyi */
+.input-with-icon .pw-toggle,
+.input-with-icon .pw-toggle .eye-label { font-size: 0 !important; }
+
+/* Fokus keyboard */
 .input-with-icon .pw-toggle:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
   border-radius: .375rem;
 }
 
-/* Ikon via CSS mask dari file SVG lokal Font Awesome */
+/* Ikon via CSS mask dari SVG lokal Font Awesome */
 .input-with-icon .pw-toggle::before {
   content: "";
   display: block;
@@ -2173,38 +2176,21 @@ pre code {
   -webkit-mask: url("/vendor/fontawesome-free/svgs/regular/eye.svg") no-repeat center / contain;
           mask: url("/vendor/fontawesome-free/svgs/regular/eye.svg") no-repeat center / contain;
 }
-
-/* Saat “show” aktif => eye-slash */
 .input-with-icon .pw-toggle.is-on::before {
   -webkit-mask-image: url("/vendor/fontawesome-free/svgs/regular/eye-slash.svg");
           mask-image: url("/vendor/fontawesome-free/svgs/regular/eye-slash.svg");
 }
 
-/* ===== Varian ukuran Bootstrap ===== */
-
-/* .form-control-sm => ikon sedikit lebih kecil & padding kanan dikurangi */
+/* Varian ukuran Bootstrap (opsional) */
 .input-with-icon .form-control.pw-input.form-control-sm {
-  --pw-icon-size: 1rem;       /* 16px */
+  --pw-icon-size: 1rem;
   --pw-right-pad: 2.5rem;
 }
-
-/* .form-control-lg => ikon sedikit lebih besar & padding kanan diperbesar */
 .input-with-icon .form-control.pw-input.form-control-lg {
-  --pw-icon-size: 1.25rem;    /* 20px */
+  --pw-icon-size: 1.25rem;
   --pw-right-pad: 3rem;
 }
 
-/* ===== Status valid/invalid (Bootstrap menaruh ikon validasi di sisi kanan) =====
-   Tambah sedikit padding-right agar tidak saling tindih dengan ikon valid/invalid bawaan. */
-.input-with-icon .pw-input.form-control.is-valid,
-.input-with-icon .pw-input.form-control.is-invalid,
-.input-with-icon .was-validated .pw-input.form-control:valid,
-.input-with-icon .was-validated .pw-input.form-control:invalid {
-  padding-right: calc(var(--pw-right-pad) + .5rem) !important;
-}
-
-/* (Opsional) Jika masih tampak turun/naik 1px karena perbedaan border/padding,
-   atur tweak halus di wrapper: style="--pw-nudge-y:-0.5px" pada div.input-with-icon */
 
 .form-control {
     display: block;
