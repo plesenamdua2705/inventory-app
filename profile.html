@@ -134,44 +134,63 @@
                     <!-- Page Heading -->
                     <h1 class="h3 mb-4 text-gray-800">Profile</h1>
 					
-				<!-- Main Conten -->
-					<section id="profile-view">
-					  <p><strong>Email:</strong> <span id="p-email">-</span></p>
-					  <p><strong>Display Name:</strong> <span id="p-name">-</span></p>
-					  <p><strong>Role:</strong> <span id="p-role">-</span></p>
-					</section>
-					
-					<section id="profile-edit">
-					  <h4>Ubah Nama Tampil</h4>
-					  <form id="formDisplayName" novalidate>
-					    <label for="displayName">Display Name</label>
-					    <input id="displayName" name="displayName" type="text" />
-					    <button type="submit">Save</button>
-					  </form>
-					  <div id="msgName" role="status" style="display:none;"></div>
-					</section>
-					
-					<section id="password-change">
-					  <h4>Ganti Password</h4>
-					  <form id="formPassword" novalidate>
-					    <label for="currentPassword">Password saat ini</label>
-					    <input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required />
-					
-					    <label for="newPassword">Password baru</label>
-					    <input id="newPassword" name="newPassword" type="password" autocomplete="new-password" required />
-					
-					    <label for="confirmPassword">Konfirmasi password baru</label>
-					    <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required />
-					
-					    <button type="submit">Ubah Password</button>
-					  </form>
-					  <div id="msgPwd" role="status" style="display:none;"></div>
-					
-					  <!-- (Opsional) Alternatif: kirim email reset -->
-					  <p><button id="btnResetEmail" type="button">Kirim tautan reset ke email saya</button></p>
-					  <div id="msgReset" role="status" style="display:none;"></div>
-					</section>
-                </div>
+			<!-- Main Conten -->
+			<div class="row">
+				<!-- Profile Show -->
+					<div class="col-lg-6 mb-4">
+						<div class="card shadow mb-4">
+							<div class="card-header py-3">
+								<h6 class="m-0 font-weight-bold text-primary">Current Profile</h6>
+							</div>
+							<div class="card-body">
+								<section id="profile-view">
+								  <p><strong>Email:</strong> <span id="p-email">-</span></p>
+								  <p><strong>Display Name:</strong> <span id="p-name">-</span></p>
+								  <p><strong>Role:</strong> <span id="p-role">-</span></p>
+								</section>
+							</div>
+						</div>
+					</div>	
+				
+				<!-- Profile Edit -->
+				<div class="col-lg-6 mb-4">
+					<div class="card shadow mb-4">
+						<div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Change Profile</h6>
+                        </div>
+						<section id="profile-edit">
+						  <h4>Ubah Nama Tampil</h4>
+						  <form id="formDisplayName" novalidate>
+							<label for="displayName">Display Name</label>
+							<input id="displayName" name="displayName" type="text" />
+							<button type="submit">Save</button>
+						  </form>
+						  <div id="msgName" role="status" style="display:none;"></div>
+						</section>
+						
+						<section id="password-change">
+						  <h4>Ganti Password</h4>
+						  <form id="formPassword" novalidate>
+							<label for="currentPassword">Password saat ini</label>
+							<input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required />
+						
+							<label for="newPassword">Password baru</label>
+							<input id="newPassword" name="newPassword" type="password" autocomplete="new-password" required />
+						
+							<label for="confirmPassword">Konfirmasi password baru</label>
+							<input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required />
+						
+							<button type="submit">Ubah Password</button>
+						  </form>
+						  <div id="msgPwd" role="status" style="display:none;"></div>
+						
+						  <!-- (Opsional) Alternatif: kirim email reset -->
+						  <p><button id="btnResetEmail" type="button">Kirim tautan reset ke email saya</button></p>
+						  <div id="msgReset" role="status" style="display:none;"></div>
+						</section>
+					</div>
+				</div>
+            </div>
                 <!-- /.container-fluid -->
 
             </div>
@@ -367,5 +386,4 @@
     <script src="js/sb-admin-2.min.js"></script>
 
 </body>
-
 </html>
