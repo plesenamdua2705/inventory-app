@@ -58,8 +58,6 @@ function resetAddUserForm(form) {
   if (toggle) {
     toggle.setAttribute('aria-pressed', 'false');
     toggle.classList.remove('is-on');
-    const lbl = toggle.querySelector('.eye-label') || toggle;
-    if (lbl) lbl.textContent = 'Show';
   }
 
   // (Opsional) bersihkan pesan validasi custom bila ada
@@ -161,7 +159,7 @@ export function initUserManagementPage() {
     hide(modal);
   });
 
-  // === Toggle Show/Hide Password ===
+ // === Toggle Show/Hide ===
   const btnTogglePwd = form?.querySelector('[data-pw-toggle]');
   if (btnTogglePwd && form) {
     btnTogglePwd.addEventListener('click', () => {
@@ -171,17 +169,13 @@ export function initUserManagementPage() {
       const toShow = pwd.type === 'password';
       pwd.type = toShow ? 'text' : 'password';
   
-      // Aksesibilitas + state visual (ikon eye/eye-slash via CSS)
       btnTogglePwd.setAttribute('aria-pressed', String(toShow));
       btnTogglePwd.setAttribute('aria-label', toShow ? 'Sembunyikan password' : 'Tampilkan password');
       btnTogglePwd.classList.toggle('is-on', toShow);
   
-      // Kembalikan fokus & caret
+      // UX: tetap fokus & caret di akhir
       pwd.focus({ preventScroll: true });
-      try {
-        const len = pwd.value.length;
-        pwd.setSelectionRange(len, len);
-      } catch {}
+      try { const len = pwd.value.length; pwd.setSelectionRange(len, len); } catch {}
     });
   }
 
