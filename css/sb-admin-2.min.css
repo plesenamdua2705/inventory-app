@@ -2128,7 +2128,7 @@ pre code {
   display: block;
   --pw-icon-size: 1.125rem;   /* ≈18px untuk .form-control normal */
   --pw-right-pad: 2.75rem;    /* ruang kanan untuk tombol ikon */
-  --pw-nudge-y: 0.5px;          /* tweak halus vertikal bila perlu (mis. -0.5px) */
+  --pw-nudge-y: -0.5px;          /* tweak halus vertikal bila perlu (mis. -0.5px) */
 }
 
 /* Tambah ruang kanan agar teks tidak tertutup ikon */
