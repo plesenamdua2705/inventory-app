@@ -2691,6 +2691,21 @@ fieldset:disabled a.btn {
     pointer-events: none
 }
 
+
+.btn-eye { 
+	padding: .25rem .5rem; 
+	border: 1px solid #ccc; 
+	background:#f5f5f5; 
+	border-radius:4px; cursor:pointer; 
+}
+.btn-eye.is-on { 
+	background:#e8f0fe;
+	border-color:#8ab4f8; 
+}
+.hidden { 
+	display:none !important; 
+}
+
 .btn-primary {
     color: #fff;
     background-color: #4e73df;
