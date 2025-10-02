@@ -11,7 +11,6 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
 /**
- * Inject Modal Logout ke <body> (sekali saja).
  * Modal Bootstrap 4: #logoutConfirmModal
  */
 function ensureLogoutModalInDOM() {
@@ -43,10 +42,6 @@ function ensureLogoutModalInDOM() {
 
 /**
  * Mount user menu (dropdown) ke container.
- * @param {Object} options
- *  - rootSelector: CSS selector kontainer mount
- *  - profileUrl, aboutUrl, loginUrl
- *  - showRoleBadge: tampilkan role di samping nama
  */
 export function mountUserMenu({
   rootSelector = "#user-menu-root",
@@ -247,3 +242,4 @@ export function mountUserMenu({
     document.removeEventListener("keydown", onEsc);
   };
 }
+
