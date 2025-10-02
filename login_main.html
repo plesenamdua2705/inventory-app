@@ -32,31 +32,53 @@
 					<i class="fas fa-fw fa-sign-in"></i>
 						<span><h2>E-STOCK</h2></span>
 						
-					<form id="loginForm" novalidate>
+					<form id="loginForm" class="user" novalidate>
+					<!-- Email -->
 					  <div class="form-group">
 						<label for="email">Email</label>
-						<input id="email" name="email" type="email" class="form-control form-control-lg" placeholder="" autocomplete="username" required>
+						<input id="email" name="email" type="email" class="form-control form-control-user" placeholder="" autocomplete="username" required>
 					  </div>
+					<!-- Password + Toggle -->
 					  <div class="form-group">
-						<label for="password">Password</label>
-						<input id="password" name="password" type="password" class="form-control form-control-lg" placeholder="" autocomplete="current-password" required>
+						<label for="password" class="small text-gray-800 mb-1">Password</label>
+						
+						<div class="input-group">
+							<input id="password" name="password" type="password" class="form-control form-control-user"
+								   placeholder="••••••••" autocomplete="current-password" required minlength="6">
+							<div class="input-group-append">
+							  <button id="togglePassword" class="btn btn-outline-secondary" type="button"
+									  aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password">
+								<i id="icon-eye" class="fas fa-eye"></i>
+								<i id="icon-eye-slash" class="fas fa-eye-slash d-none"></i>
+							  </button>
+							</div>
+							<div class="invalid-feedback small">Password minimal 6 karakter.</div>
+						</div>
 					  </div>
 					  
-					  <div class="form-check-label">
-						<label for="remember">Remember Me</label>
-						<input id="remember" type="checkbox" checked>
-					  </div>
+					  <!-- Remember & Forgot -->
+					  <div class="form-group d-flex justify-content-between align-items-center">
+						  <div class="custom-control custom-checkbox small">
+							<input type="checkbox" class="custom-control-input" id="rememberMe">
+							<label class="custom-control-label" for="rememberMe">Remember me</label>
+						  </div>
+						  <a>Forgot Password?</a>
+					 </div>
 					  
-					  <div class="btn-block"><button id= "btnLogin" type="submit">Login</button></div>
-					  
+						<!-- Button -->
+						<button id="btnLogin" type="submit" class="btn btn-primary btn-user btn-block" disabled>
+						  <span id="btnText">Login</span>
+						  <span id="spinner" class="spinner-border spinner-border-sm ml-2 d-none" role="status" aria-hidden="true"></span>
+						</button>
+						  
 					
 					  <div class="text-center mt-3">
-						<a href="forgot-password.html" id="btnForgot">Forgot Password?</a>
-						
-						<div id="errorBox" role="alert" style="display:none;"></div>
+						<a href="forgot-password.html" id="btnForgot">Forgot Password?</a> 
 					  </div>
+					  
+					  <!-- Error Box -->
+					  <div id="errorBox" class="alert alert-danger small mt-3 d-none mb-0" role="alert" aria-live="polite"></div>
 					</form>
-				  </div>
 				</div>
 			</div>
 		
@@ -74,76 +96,123 @@
 	<script type="module">
 		import { auth, ensureUserDoc } from './js/firebase-init.js';
 		import {
+		  getAuth,
+		  onAuthStateChanged,
 		  signInWithEmailAndPassword,
 		  setPersistence,
 		  browserLocalPersistence,
 		  browserSessionPersistence
 		} from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
 
-		const form = document.getElementById('loginForm');
-		const emailEl = document.getElementById('email');
-		const passEl = document.getElementById('password');
-		const rememberEl = document.getElementById('remember');
-		const btnLogin = document.getElementById('btnLogin');
-		const errorBox = document.getElementById('errorBox');
+		// ====== Element refs ======
+    const form = document.getElementById('loginForm');
+    const emailEl = document.getElementById('email');
+    const passEl = document.getElementById('password');
+    const rememberEl = document.getElementById('rememberMe');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnText = document.getElementById('btnText');
+    const spinner = document.getElementById('spinner');
+    const errorBox = document.getElementById('errorBox');
 
-		function showError(msg) {
-		  errorBox.textContent = msg;
-		  errorBox.style.display = 'block';
-		}
+    const toggleBtn = document.getElementById('togglePassword');
+    const iconEye = document.getElementById('icon-eye');
+    const iconEyeSlash = document.getElementById('icon-eye-slash');
 
-		function clearError() {
-		  errorBox.textContent = '';
-		  errorBox.style.display = 'none';
-		}
+    // ====== Helpers ======
+    const emailRegex =
+      /^[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@a-z0-9?(?:\.a-z0-9?)*$/i;
 
-		form.addEventListener('submit', async (e) => {
-		  e.preventDefault();
-		  clearError();
+    function setLoading(loading) {
+      if (loading) {
+        btnLogin.disabled = true;
+        spinner.classList.remove('d-none');
+        btnText.textContent = 'Memproses...';
+      } else {
+        spinner.classList.add('d-none');
+        btnText.textContent = 'Login';
+        validateForm(); // re-enable jika valid
+      }
+    }
 
-		  const email = emailEl.value.trim();
-		  const password = passEl.value;
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.classList.remove('d-none');
+    }
+    function clearError() {
+      errorBox.textContent = '';
+      errorBox.classList.add('d-none');
+    }
 
-		  if (!email || !password) {
-			showError('Email dan password wajib diisi.');
-			return;
-		  }
+    function validateForm() {
+      const emailValid = emailRegex.test((emailEl.value || '').trim());
+      const passValid  = (passEl.value || '').length >= 6;
 
-		  btnLogin.disabled = true;
-		  btnLogin.textContent = 'Memproses...';
+      // Bootstrap validation UI
+      emailEl.classList.toggle('is-invalid', emailEl.value && !emailValid);
+      passEl.classList.toggle('is-invalid', passEl.value && !passValid);
 
-		  try {
-			// Set persistence sesuai "Remember Me"
-			await setPersistence(
-			  auth,
-			  rememberEl.checked ? browserLocalPersistence : browserSessionPersistence
-			);
+      const ok = emailValid && passValid && !spinner.classList.contains('showing');
+      btnLogin.disabled = !ok || !emailValid || !passValid || !errorBox.classList.contains('d-none') && false;
+      return emailValid && passValid;
+    }
 
-			// Sign in
-			const cred = await signInWithEmailAndPassword(auth, email, password);
+    // ====== Toggle Show/Hide Password ======
+    toggleBtn.addEventListener('click', () => {
+      const hidden = passEl.type === 'password';
+      passEl.type = hidden ? 'text' : 'password';
+      toggleBtn.setAttribute('aria-pressed', String(hidden));
+      toggleBtn.setAttribute('aria-label', hidden ? 'Sembunyikan password' : 'Tampilkan password');
+      iconEye.classList.toggle('d-none', hidden);
+      iconEyeSlash.classList.toggle('d-none', !hidden);
+      passEl.focus({ preventScroll: true });
+    });
 
-			// Pastikan dokumen user tersedia
-			await ensureUserDoc(cred.user);
+    // ====== Input events ======
+    emailEl.addEventListener('input', () => { clearError(); validateForm(); });
+    passEl.addEventListener('input', () => { clearError(); validateForm(); });
 
-			// Sukses → arahkan ke dashboard/beranda
-			window.location.href = 'index.html';
-		  } catch (err) {
-			console.error(err);
-			// Pesan yang lebih ramah untuk beberapa error umum
-			const msgMap = {
-			  'auth/invalid-email': 'Format email tidak valid.',
-			  'auth/user-disabled': 'Akun dinonaktifkan.',
-			  'auth/user-not-found': 'User tidak ditemukan.',
-			  'auth/wrong-password': 'Password salah.',
-			  'default': 'Gagal login. Silakan coba lagi.'
-			};
-			const code = err?.code || 'default';
-			showError(msgMap[code] ?? msgMap['default']);
-		  } finally {
-			btnLogin.disabled = false;
-			btnLogin.textContent = 'Login';
-		  }
-		});
+    // ====== Submit ======
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+      if (!validateForm()) return;
+
+      try {
+        setLoading(true);
+
+        // Persistence dari Remember Me
+        await setPersistence(auth, rememberEl.checked ? browserLocalPersistence : browserSessionPersistence);
+
+        // Sign in
+        await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
+
+        // Redirect sesudah login (ganti sesuai kebutuhan)
+        window.location.assign('souvenir.html');
+      } catch (err) {
+        console.error('[Login Error]', err);
+        const code = err?.code || '';
+
+        const map = {
+          'auth/invalid-email': 'Format email tidak valid.',
+          'auth/invalid-credential': 'Email atau password salah.',
+          'auth/wrong-password': 'Email atau password salah.',
+          'auth/user-not-found': 'Email atau password salah.',
+          'auth/user-disabled': 'Akun Anda dinonaktifkan.',
+          'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi beberapa menit.',
+          'auth/network-request-failed': 'Koneksi jaringan bermasalah. Periksa internet Anda.',
+        };
+        showError(map[code] || 'Gagal masuk. Silakan coba lagi.');
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // ====== Auto-redirect jika sudah login ======
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.replace('souvenir.html'); // GANTI bila perlu
+      }
+    });
 	</script>
 
 </body>
