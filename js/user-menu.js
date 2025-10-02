@@ -3,6 +3,34 @@ import { auth, db } from "./firebase-init.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
+// ===== [PATCH] Inject Modal Logout =====
+function ensureLogoutModalInDOM() {
+  if (document.getElementById("logoutConfirmModal")) return; // sudah ada
+
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = `
+    <div class="modal fade" id="logoutConfirmModal" tabindex="-1" role="dialog" aria-labelledby="logoutConfirmTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header">
+            <h5 class="modal-title" id="logoutConfirmTitle">Konfirmasi Logout</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">Apakah Anda yakin ingin keluar?</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Tidak</button>
+            <button type="button" class="btn btn-danger" id="confirmLogoutBtn">Ya, Keluar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `.trim();
+
+  document.body.appendChild(wrapper.firstElementChild);
+}
+
 export function mountUserMenu({
   rootSelector = "#user-menu-root",
   profileUrl = "./profile.html",
@@ -12,11 +40,11 @@ export function mountUserMenu({
 } = {}) {
   const root = document.querySelector(rootSelector);
   if (!root) { console.warn("[user-menu] container tidak ditemukan:", rootSelector); return () => {}; }
-
+  
   // Wrapper
   const wrap = document.createElement("div");
   wrap.className = "user-menu position-relative";
-  wrap.style.zIndex = "1050";
+  wrap.style.zIndex = "1030"; // agar modal (1050) selalu di atas
 
   // Button
   const btn = document.createElement("button");
@@ -103,6 +131,8 @@ export function mountUserMenu({
   root.innerHTML = ""; // bersihkan kontainer, lalu mount
   root.appendChild(wrap);
 
+  ensureLogoutModalInDOM();
+
   // Toggle
   const setOpen = (open) => { btn.setAttribute("aria-expanded", String(open)); dropdown.style.display = open ? "block" : "none"; };
   const toggle = () => setOpen(btn.getAttribute("aria-expanded") !== "true");
@@ -145,18 +175,29 @@ export function mountUserMenu({
     }
   });
 
-  // Logout
+  // Logout 
   btnLogout.addEventListener("click", async (e) => {
-    e.preventDefault(); e.stopPropagation(); setOpen(false);
-    try { await signOut(auth); } finally { window.location.href = loginUrl; }
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(false);
+  
+    const hasBootstrapModal = typeof window.$ === "function" && typeof window.$.fn?.modal === "function";
+    const modalEl = document.getElementById("logoutConfirmModal");
+  
+    if (hasBootstrapModal && modalEl) {
+      window.$(modalEl).modal("show");
+      const okBtn = document.getElementById("confirmLogoutBtn");
+      if (okBtn && okBtn.dataset.bound !== "1") {
+        okBtn.dataset.bound = "1";
+        okBtn.addEventListener("click", async () => {
+          try { await signOut(auth); }
+          finally { window.location.href = loginUrl; }
+        });
+      }
+    } else {
+      if (!window.confirm("Apakah Anda yakin ingin keluar?")) return;
+      try { await signOut(auth); }
+      finally { window.location.href = loginUrl; }
+    }
   });
-
-  return () => {
-    document.removeEventListener("click", onDocClick);
-    document.removeEventListener("keydown", onEsc);
-  };
-}
-
-
-
-
+  
