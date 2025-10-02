@@ -76,7 +76,7 @@ export function mountUserMenu({
   // Logout: fa v4 + fas v5 (sign-out vs sign-out-alt)
   // Jika ingin tampilan yang lebih umum di FA5, ganti ke 'fas fa-sign-out-alt'
   const iconL = document.createElement('i');
-  iconL.className = 'fa fa-sign-out fas fa-sign-out-alt fa-sm fa-fw mr-2 text-danger';
+  iconL.className = 'fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400';
 
   ul.appendChild(liP); ul.appendChild(liA); ul.appendChild(liL);
   dropdown.appendChild(ul);
@@ -139,4 +139,5 @@ export function mountUserMenu({
     document.removeEventListener("keydown", onEsc);
   };
 }
+
 
