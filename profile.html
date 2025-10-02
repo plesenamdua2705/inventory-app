@@ -134,82 +134,111 @@
 					<!-- Page Heading -->
 					<h1 class="h3 mb-4 text-gray-800">Profile</h1>
 						
-					<!-- Main Conten -->
+					<!-- Main Content -->
+					
 					<div class="row">
-						<!-- Profile Show -->
-							<div class="col-lg-6 mb-4">
-								<div class="card shadow mb-4">
-									<div class="card-header py-3">
-										<h6 class="m-0 font-weight-bold text-primary">Current Profile</h6>
-									</div>
-									<div class="card-body">
-										<section id="profile-view">
-										  <p><strong>Email:</strong> <span id="p-email">-</span></p>
-										  <p><strong>Display Name:</strong> <span id="p-name">-</span></p>
-										  <p><strong>Role:</strong> <span id="p-role">-</span></p>
-										</section>
-									</div>
-								</div>
-							
-							
-								<div class="card shadow mb-4">
-	                                <div class="card-header py-3">
-	                                    <h6 class="m-0 font-weight-bold text-primary">Email Password Reset</h6>
-	                                </div>
-	                                <div class="card-body">
-										<p>Untuk reset password dapat dilakukan dengan klik tombol reset password dibawah ini.</p>
-										<p>Konfirmasi reset email akan dikirimkan melalui email. Cek inbox (spam) untuk melihat konfirmasi email.</p>
-										
-										<!-- (Opsional) Alternatif: kirim email reset -->
-										<p><button id="btnResetEmail" type="button">Kirim tautan reset ke email saya</button></p>
-										<div id="msgReset" role="status" style="display:none;"></div>
-									</div>
-								</div>
-							</div>
-						<!-- Profile Edit -->
-						<div class="col-lg-6 mb-4">
-							<div class="card shadow mb-4">
-								<div class="card-header py-3">
-									<h6 class="m-0 font-weight-bold text-primary">Change Profile</h6>
-								</div>
-								<div class="card-body">
-									<section id="profile-edit">
-									  <h6 class="text-lg mb-2"><strong>Ubah Tampilan Nama</strong></h6>
-										<div class="form-group">
-										  <form id="formDisplayName" novalidate>
-											<label for="displayName">Display Name</label>
-											<input id="displayName" name="displayName" type="text" />
-											<button type="submit">Save</button>
-										  </form>
-										</div>
-									  <div id="msgName" role="status" style="display:none;"></div>
-									</section>
-
-									<hr class="sidebar-divider">
-									
-									<section id="password-change">
-									  <h6 class="text-lg mb-2"><strong>Ganti Password</strong></h6>
-									  <form id="formPassword" novalidate>
-										  <div class="form-group">
-											<label for="currentPassword">Password saat ini</label>
-											<input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required />
-										  </div>
-										  <div class="form-group">
-											<label for="newPassword">Password baru</label>
-											<input id="newPassword" name="newPassword" type="password" autocomplete="new-password" required />
-										  </div>
-										<label for="confirmPassword">Konfirmasi password baru</label>
-										<input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required />
-									
-										<button type="submit">Ubah Password</button>
-									  </form>
-									  <div id="msgPwd" role="status" style="display:none;"></div>
-									</section>
-								</div>
-							</div>
+					  <!-- Current Profile -->
+					  <div class="col-lg-6 mb-4">
+						<div class="card shadow h-100">
+						  <div class="card-header py-3">
+							<h6 class="m-0 font-weight-bold text-primary">Current Profile</h6>
+						  </div>
+						  <div class="card-body">
+							<!-- Ganti isi berikut via JS sesuai user login -->
+							<div class="mb-2"><strong>Email:</strong> <span id="profEmail">-</span></div>
+							<div class="mb-2"><strong>Display Name:</strong> <span id="profDisplayName">-</span></div>
+							<div class="mb-0"><strong>Role:</strong> <span id="profRole">-</span></div>
+						  </div>
 						</div>
+					  </div>
+
+					  <!-- Email Password Reset -->
+					  <div class="col-lg-6 mb-4">
+						<div class="card shadow h-100">
+						  <div class="card-header py-3">
+							<h6 class="m-0 font-weight-bold text-primary">Email Password Reset</h6>
+						  </div>
+						  <div class="card-body">
+							<p class="mb-2">
+							  Untuk reset password, klik tombol di bawah ini. Konfirmasi reset akan dikirim melalui email (cek Inbox/Spam).
+							</p>
+							<button id="btnSendResetLink" type="button" class="btn btn-warning">
+							  Kirim tautan reset ke email saya
+							</button>
+						  </div>
+						</div>
+					  </div>
 					</div>
-					<!-- /.container-fluid -->
+
+					<!-- Ubah Nama Tampil & Ganti Password bersusun sejajar -->
+					<div class="row">
+					  <!-- Ubah Nama Tampil -->
+					  <div class="col-lg-6 mb-4">
+						<div class="card shadow h-100">
+						  <div class="card-header py-3">
+							<h6 class="m-0 font-weight-bold text-primary">Ubah Nama Tampil</h6>
+						  </div>
+						  <div class="card-body">
+							<form id="formDisplayName" novalidate>
+							  <div class="form-group">
+								<label for="displayNameInput">Display Name</label>
+								<input type="text" id="displayNameInput" name="displayName" class="form-control" placeholder="Masukkan nama tampil" required>
+								<div class="invalid-feedback">Nama tampil wajib diisi.</div>
+							  </div>
+							  <div class="d-flex gap-2">
+								<button type="submit" class="btn btn-primary">Save</button>
+								<button type="reset" class="btn btn-outline-secondary">Reset</button>
+							  </div>
+							</form>
+						  </div>
+						</div>
+					  </div>
+
+					  <!-- Ganti Password -->
+					  <div class="col-lg-6 mb-4">
+						<div class="card shadow h-100">
+						  <div class="card-header py-3 d-flex align-items-center justify-content-between">
+							<h6 class="m-0 font-weight-bold text-primary">Ganti Password</h6>
+							<!-- opsi info kecil -->
+							<small class="text-muted d-none d-md-inline">Min. 6 karakter</small>
+						  </div>
+						  <div class="card-body">
+							<form id="changePasswordForm" novalidate>
+							  <!-- Password sekarang -->
+							  <div class="form-group position-relative input-with-icon" style="--pw-nudge-y:1px;">
+								<label for="currPassword">Password saat ini</label>
+								<input type="password" id="currPassword" name="currentPassword" class="form-control pw-input" minlength="6" required autocomplete="current-password">
+								<button type="button" class="pw-toggle" data-pw-toggle aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password"></button>
+								<div class="invalid-feedback">Masukkan password saat ini.</div>
+							  </div>
+
+							  <!-- Password baru -->
+							  <div class="form-group position-relative input-with-icon" style="--pw-nudge-y:1px;">
+								<label for="newPassword">Password baru</label>
+								<input type="password" id="newPassword" name="newPassword" class="form-control pw-input" minlength="6" required autocomplete="new-password">
+								<button type="button" class="pw-toggle" data-pw-toggle aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password"></button>
+								<div class="invalid-feedback">Masukkan password baru (min. 6 karakter).</div>
+							  </div>
+
+							  <!-- Konfirmasi password -->
+							  <div class="form-group position-relative input-with-icon" style="--pw-nudge-y:1px;">
+								<label for="confirmPassword">Konfirmasi password baru</label>
+								<input type="password" id="confirmPassword" name="confirmPassword" class="form-control pw-input" minlength="6" required autocomplete="new-password">
+								<button type="button" class="pw-toggle" data-pw-toggle aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password"></button>
+								<div class="invalid-feedback">Konfirmasi password wajib diisi.</div>
+							  </div>
+
+							  <div class="d-flex flex-wrap gap-2">
+								<button type="submit" class="btn btn-success">Ubah Password</button>
+								<button type="reset" class="btn btn-outline-secondary">Reset</button>
+							  </div>
+							</form>
+						  </div>
+						</div>
+					  </div>
+					</div>
+
+					<!-- Profile page content-->
 				</div>
 			</div>
 			<!-- End of Main Content -->
@@ -369,6 +398,60 @@
 	      msgReset.textContent = 'Gagal mengirim email reset.'; msgReset.style.display = 'block';
 	    }
 	  });
+	</script>
+	
+	<script>
+	// Toggle Show/Hide untuk semua field password di profile.html
+	(function () {
+	  function attachToggles(scope) {
+		var toggles = (scope || document).querySelectorAll('[data-pw-toggle]');
+		toggles.forEach(function(btn){
+		  // Hindari double-binding
+		  if (btn.dataset.bound === '1') return;
+		  btn.dataset.bound = '1';
+
+		  btn.addEventListener('click', function(){
+			// Cari input password terdekat dalam wrapper .input-with-icon yang sama
+			var wrapper = btn.closest('.input-with-icon');
+			var input = wrapper ? wrapper.querySelector('.pw-input') : null;
+			if (!input) return;
+
+			var toShow = input.type === 'password';
+			input.type = toShow ? 'text' : 'password';
+
+			btn.setAttribute('aria-pressed', String(toShow));
+			btn.setAttribute('aria-label', toShow ? 'Sembunyikan password' : 'Tampilkan password');
+			btn.classList.toggle('is-on', toShow);
+
+			// Jaga UX: fokus & caret di akhir
+			input.focus({ preventScroll: true });
+			try { var len = input.value.length; input.setSelectionRange(len, len); } catch(e){}
+		  });
+		});
+	  }
+
+	  // Pasang saat DOM siap
+	  if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', function(){ attachToggles(document); });
+	  } else {
+		attachToggles(document);
+	  }
+
+	  // Reset form -> kembalikan ikon & tipe input
+	  ['formDisplayName','changePasswordForm'].forEach(function(id){
+		var f = document.getElementById(id);
+		if (!f) return;
+		f.addEventListener('reset', function(){
+		  var inputs = f.querySelectorAll('.pw-input');
+		  inputs.forEach(function(inp){ inp.type = 'password'; });
+		  var btns = f.querySelectorAll('[data-pw-toggle]');
+		  btns.forEach(function(b){
+			b.setAttribute('aria-pressed','false');
+			b.classList.remove('is-on');
+		  });
+		});
+	  });
+	})();
 	</script>
 
 
