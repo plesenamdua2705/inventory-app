@@ -76,8 +76,24 @@ export function mountUserMenu({
   // Logout: fa v4 + fas v5 (sign-out vs sign-out-alt)
   // Jika ingin tampilan yang lebih umum di FA5, ganti ke 'fas fa-sign-out-alt'
   const iconL = document.createElement('i');
-  iconL.className = 'fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400';
-  aL.prepend(iconL);
+  iconL.className = 'fa fa-sign-out fas fa-sign-out-alt fa-sm fa-fw mr-2 text-danger';
+  btnLogout.prepend(iconL);
+
+  // Fallback otomatis: jika FA5 gagal (ikon belum ter-render), pakai FA6
+  requestAnimationFrame(() => {
+    try {
+      const pseudo = getComputedStyle(iconL, '::before');
+      const content = pseudo && pseudo.content;
+      // Jika content kosong/"none"/"normal" → ikon belum resolve
+      if (!content || content === 'none' || content === 'normal' || content === '""') {
+        // Ganti ke nama ikon FA6
+        iconL.className = 'fa-solid fa-right-from-bracket fa-sm fa-fw mr-2 text-danger';
+      }
+    } catch (_) {
+      // Aman-aman saja jika browser tidak mendukung ::before inspection
+      // (Biarkan class dual FA4/FA5 tadi)
+    }
+  });
 
   ul.appendChild(liP); ul.appendChild(liA); ul.appendChild(liL);
   dropdown.appendChild(ul);
@@ -140,6 +156,7 @@ export function mountUserMenu({
     document.removeEventListener("keydown", onEsc);
   };
 }
+
 
 
 
