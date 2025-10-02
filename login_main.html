@@ -23,44 +23,43 @@
 
 	<div class="container">
 		<div class="row justify-content-center align-items-center min-vh-100">
-		  <div class="col-lg-10">
-			<div class="login-container">
-			  <div class="login-image">
-				<img src="img/inventory.svg" alt="Login Illustration" />
-			  </div>
-			  <div class="login-form">
-				<i class="fas fa-fw fa-sign-in"></i>
-                    <span><h2>E-STOCK</h2></span>
+			<div class="col-lg-10">
+				<div class="login-container">
+				  <div class="login-image">
+					<img src="img/inventory.svg" alt="Login Illustration" />
+				  </div>
+				  <div class="login-form">
+					<i class="fas fa-fw fa-sign-in"></i>
+						<span><h2>E-STOCK</h2></span>
+						
+					<form id="loginForm" novalidate>
+					  <div class="form-group">
+						<label for="email">Email</label>
+						<input id="email" name="email" type="email" class="form-control form-control-lg" placeholder="" autocomplete="username" required>
+					  </div>
+					  <div class="form-group">
+						<label for="password">Password</label>
+						<input id="password" name="password" type="password" class="form-control form-control-lg" placeholder="" autocomplete="current-password" required>
+					  </div>
+					  
+					  <div class="form-check-label">
+						<label for="remember">Remember Me</label>
+						<input id="remember" type="checkbox" checked>
+					  </div>
+					  
+					  <div class="btn-block"><button id= "btnLogin" type="submit">Login</button></div>
+					  
 					
-				<form id="loginForm" novalidate>
-				  <div class="form-group">
-				    <label for="email">Email</label>
-					<input id="email" name="email" type="email" class="form-control form-control-lg" placeholder="" autocomplete="username" required>
+					  <div class="text-center mt-3">
+						<a href="forgot-password.html" id="btnForgot">Forgot Password?</a>
+						
+						<div id="errorBox" role="alert" style="display:none;"></div>
+					  </div>
+					</form>
 				  </div>
-				  <div class="form-group">
-				    <label for="password">Password</label>
-					<input id="password" name="password" type="password" class="form-control form-control-lg" placeholder="" autocomplete="current-password" required>
-				  </div>
-				  
-				  <div class="form-check-label">
-				    <label for="remember">Remember Me</label>
-					<input id="remember" type="checkbox" checked>
-				  </div>
-				  
-				  <div class="btn-block"><button id= "btnLogin" type="submit">Login</button></div>
-				  
-				
-				  
-				  <div class="text-center mt-3">
-					<a href="forgot-password.html" id="btnForgot">Forgot Password?</a>
-					
-					<div id="errorBox" role="alert" style="display:none;"></div>
-				  </div>
-				</form>
-				
-			  </div>
+				</div>
 			</div>
-		  </div>
+		
 		  <footer>
 			<div class="copyright text-center my-auto">
 				<span>Copyright &copy; Production System Management 2025</span>
@@ -69,83 +68,83 @@
 		</div>
 	</div>
 	
-	<!-- 2) Enhancer Login (ADD-ONLY) -->
+	<!-- End of Container -->
 	
 	
-<script type="module">
-    import { auth, ensureUserDoc } from './js/firebase-init.js';
-    import {
-      signInWithEmailAndPassword,
-      setPersistence,
-      browserLocalPersistence,
-      browserSessionPersistence
-    } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
+	<script type="module">
+		import { auth, ensureUserDoc } from './js/firebase-init.js';
+		import {
+		  signInWithEmailAndPassword,
+		  setPersistence,
+		  browserLocalPersistence,
+		  browserSessionPersistence
+		} from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
 
-    const form = document.getElementById('loginForm');
-    const emailEl = document.getElementById('email');
-    const passEl = document.getElementById('password');
-    const rememberEl = document.getElementById('remember');
-    const btnLogin = document.getElementById('btnLogin');
-    const errorBox = document.getElementById('errorBox');
+		const form = document.getElementById('loginForm');
+		const emailEl = document.getElementById('email');
+		const passEl = document.getElementById('password');
+		const rememberEl = document.getElementById('remember');
+		const btnLogin = document.getElementById('btnLogin');
+		const errorBox = document.getElementById('errorBox');
 
-    function showError(msg) {
-      errorBox.textContent = msg;
-      errorBox.style.display = 'block';
-    }
+		function showError(msg) {
+		  errorBox.textContent = msg;
+		  errorBox.style.display = 'block';
+		}
 
-    function clearError() {
-      errorBox.textContent = '';
-      errorBox.style.display = 'none';
-    }
+		function clearError() {
+		  errorBox.textContent = '';
+		  errorBox.style.display = 'none';
+		}
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearError();
+		form.addEventListener('submit', async (e) => {
+		  e.preventDefault();
+		  clearError();
 
-      const email = emailEl.value.trim();
-      const password = passEl.value;
+		  const email = emailEl.value.trim();
+		  const password = passEl.value;
 
-      if (!email || !password) {
-        showError('Email dan password wajib diisi.');
-        return;
-      }
+		  if (!email || !password) {
+			showError('Email dan password wajib diisi.');
+			return;
+		  }
 
-      btnLogin.disabled = true;
-      btnLogin.textContent = 'Memproses...';
+		  btnLogin.disabled = true;
+		  btnLogin.textContent = 'Memproses...';
 
-      try {
-        // Set persistence sesuai "Remember Me"
-        await setPersistence(
-          auth,
-          rememberEl.checked ? browserLocalPersistence : browserSessionPersistence
-        );
+		  try {
+			// Set persistence sesuai "Remember Me"
+			await setPersistence(
+			  auth,
+			  rememberEl.checked ? browserLocalPersistence : browserSessionPersistence
+			);
 
-        // Sign in
-        const cred = await signInWithEmailAndPassword(auth, email, password);
+			// Sign in
+			const cred = await signInWithEmailAndPassword(auth, email, password);
 
-        // Pastikan dokumen user tersedia
-        await ensureUserDoc(cred.user);
+			// Pastikan dokumen user tersedia
+			await ensureUserDoc(cred.user);
 
-        // Sukses → arahkan ke dashboard/beranda
-        window.location.href = 'index.html';
-      } catch (err) {
-        console.error(err);
-        // Pesan yang lebih ramah untuk beberapa error umum
-        const msgMap = {
-          'auth/invalid-email': 'Format email tidak valid.',
-          'auth/user-disabled': 'Akun dinonaktifkan.',
-          'auth/user-not-found': 'User tidak ditemukan.',
-          'auth/wrong-password': 'Password salah.',
-          'default': 'Gagal login. Silakan coba lagi.'
-        };
-        const code = err?.code || 'default';
-        showError(msgMap[code] ?? msgMap['default']);
-      } finally {
-        btnLogin.disabled = false;
-        btnLogin.textContent = 'Login';
-      }
-    });
-  </script>
+			// Sukses → arahkan ke dashboard/beranda
+			window.location.href = 'index.html';
+		  } catch (err) {
+			console.error(err);
+			// Pesan yang lebih ramah untuk beberapa error umum
+			const msgMap = {
+			  'auth/invalid-email': 'Format email tidak valid.',
+			  'auth/user-disabled': 'Akun dinonaktifkan.',
+			  'auth/user-not-found': 'User tidak ditemukan.',
+			  'auth/wrong-password': 'Password salah.',
+			  'default': 'Gagal login. Silakan coba lagi.'
+			};
+			const code = err?.code || 'default';
+			showError(msgMap[code] ?? msgMap['default']);
+		  } finally {
+			btnLogin.disabled = false;
+			btnLogin.textContent = 'Login';
+		  }
+		});
+	</script>
 
 </body>
 </html>
