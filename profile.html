@@ -133,112 +133,121 @@
 
 					<!-- Page Heading -->
 					<h1 class="h3 mb-4 text-gray-800">Profile</h1>
-						
-					<!-- Main Content -->
-					
+
+				<!-- ======================= PROFILE PAGE CONTENT ======================= -->
+
 					<div class="row">
 					  <!-- Current Profile -->
 					  <div class="col-lg-6 mb-4">
-						<div class="card shadow h-100">
-						  <div class="card-header py-3">
-							<h6 class="m-0 font-weight-bold text-primary">Current Profile</h6>
-						  </div>
-						  <div class="card-body">
-							<!-- Ganti isi berikut via JS sesuai user login -->
-							<div class="mb-2"><strong>Email:</strong> <span id="p-email">-</span></div>
-							<div class="mb-2"><strong>Display Name:</strong> <span id="p-name">-</span></div>
-							<div class="mb-0"><strong>Role:</strong> <span id="p-role">-</span></div>
-						  </div>
-						</div>
+					    <div class="card shadow h-100">
+					      <div class="card-header py-3">
+					        <h6 class="m-0 font-weight-bold text-primary">Current Profile</h6>
+					      </div>
+					      <div class="card-body">
+					        <div class="mb-2"><strong>Email:</strong> <span id="profEmail">-</span></div>
+					        <div class="mb-2"><strong>Display Name:</strong> <span id="profDisplayName">-</span></div>
+					        <div class="mb-0"><strong>Role:</strong> <span id="profRole">-</span></div>
+					      </div>
+					    </div>
 					  </div>
-
+					
 					  <!-- Email Password Reset -->
 					  <div class="col-lg-6 mb-4">
-						<div class="card shadow h-100">
-						  <div class="card-header py-3">
-							<h6 class="m-0 font-weight-bold text-primary">Email Password Reset</h6>
-						  </div>
-						  <div class="card-body">
-							<p class="mb-2">
-							  Untuk reset password, klik tombol di bawah ini. Konfirmasi reset akan dikirim melalui email (cek Inbox/Spam).
-							</p>
-							<button id="btnSendResetLink" type="button" class="btn btn-warning">
-							  Kirim tautan reset ke email saya
-							</button>
-						  </div>
-						</div>
+					    <div class="card shadow h-100">
+					      <div class="card-header py-3">
+					        <h6 class="m-0 font-weight-bold text-primary">Email Password Reset</h6>
+					      </div>
+					      <div class="card-body">
+					        <p class="mb-2">
+					          Untuk reset password, klik tombol di bawah ini. Konfirmasi reset akan dikirim melalui email (cek Inbox/Spam).
+					        </p>
+					        <button id="btnSendResetLink" type="button" class="btn btn-warning">
+					          Kirim tautan reset ke email saya
+					        </button>
+					        <small id="resetLinkMsg" class="form-text text-muted mt-2"></small>
+					      </div>
+					    </div>
 					  </div>
 					</div>
-
-					<!-- Ubah Nama Tampil & Ganti Password bersusun sejajar -->
+					
+					<!-- Ubah Nama Tampil & Ganti Password sejajar -->
 					<div class="row">
 					  <!-- Ubah Nama Tampil -->
 					  <div class="col-lg-6 mb-4">
-						<div class="card shadow h-100">
-						  <div class="card-header py-3">
-							<h6 class="m-0 font-weight-bold text-primary">Ubah Nama Tampil</h6>
-						  </div>
-						  <div class="card-body">
-							<form id="formDisplayName" novalidate>
-							  <div class="form-group">
-								<label for="displayNameInput">Display Name</label>
-								<input type="text" id="displayNameInput" name="displayName" class="form-control" placeholder="Masukkan nama tampil" required>
-								<div class="invalid-feedback">Nama tampil wajib diisi.</div>
-							  </div>
-							  <div class="d-flex gap-2">
-								<button type="submit" class="btn btn-primary">Save</button>
-								<button type="reset" class="btn btn-outline-secondary">Reset</button>
-							  </div>
-							</form>
-						  </div>
-						</div>
+					    <div class="card shadow h-100">
+					      <div class="card-header py-3">
+					        <h6 class="m-0 font-weight-bold text-primary">Ubah Nama Tampil</h6>
+					      </div>
+					      <div class="card-body">
+					        <form id="formDisplayName" novalidate>
+					          <div class="form-group">
+					            <label for="displayNameInput">Display Name</label>
+					            <input type="text" id="displayNameInput" name="displayName"
+					                   class="form-control" placeholder="Masukkan nama tampil" required>
+					            <div class="invalid-feedback">Nama tampil wajib diisi.</div>
+					          </div>
+					          <!-- Spasi tombol dari kolom form -->
+					          <div class="mt-2">
+					            <button type="submit" class="btn btn-primary mr-2">Save</button>
+					            <button type="reset" class="btn btn-outline-secondary">Reset</button>
+					          </div>
+					          <small id="displayNameMsg" class="form-text text-muted mt-2"></small>
+					        </form>
+					      </div>
+					    </div>
 					  </div>
-
+					
 					  <!-- Ganti Password -->
 					  <div class="col-lg-6 mb-4">
-						<div class="card shadow h-100">
-						  <div class="card-header py-3 d-flex align-items-center justify-content-between">
-							<h6 class="m-0 font-weight-bold text-primary">Ganti Password</h6>
-							<!-- opsi info kecil -->
-							<small class="text-muted d-none d-md-inline">Min. 6 karakter</small>
-						  </div>
-						  <div class="card-body">
-							<form id="changePasswordForm" novalidate>
-							  <!-- Password sekarang -->
-							  <div class="form-group position-relative input-with-icon" style="--pw-nudge-y:1px;">
-								<label for="currPassword">Password saat ini</label>
-								<input type="password" id="currPassword" name="currentPassword" class="form-control pw-input" minlength="6" required autocomplete="current-password">
-								<button type="button" class="pw-toggle" data-pw-toggle aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password"></button>
-								<div class="invalid-feedback">Masukkan password saat ini.</div>
-							  </div>
-
-							  <!-- Password baru -->
-							  <div class="form-group position-relative input-with-icon" style="--pw-nudge-y:1px;">
-								<label for="newPassword">Password baru</label>
-								<input type="password" id="newPassword" name="newPassword" class="form-control pw-input" minlength="6" required autocomplete="new-password">
-								<button type="button" class="pw-toggle" data-pw-toggle aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password"></button>
-								<div class="invalid-feedback">Masukkan password baru (min. 6 karakter).</div>
-							  </div>
-
-							  <!-- Konfirmasi password -->
-							  <div class="form-group position-relative input-with-icon" style="--pw-nudge-y:1px;">
-								<label for="confirmPassword">Konfirmasi password baru</label>
-								<input type="password" id="confirmPassword" name="confirmPassword" class="form-control pw-input" minlength="6" required autocomplete="new-password">
-								<button type="button" class="pw-toggle" data-pw-toggle aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password"></button>
-								<div class="invalid-feedback">Konfirmasi password wajib diisi.</div>
-							  </div>
-
-							  <div class="d-flex flex-wrap gap-2">
-								<button type="submit" class="btn btn-success">Ubah Password</button>
-								<button type="reset" class="btn btn-outline-secondary">Reset</button>
-							  </div>
-							</form>
-						  </div>
-						</div>
+					    <div class="card shadow h-100">
+					      <div class="card-header py-3 d-flex align-items-center justify-content-between">
+					        <h6 class="m-0 font-weight-bold text-primary">Ganti Password</h6>
+					        <small class="text-muted d-none d-md-inline">Min. 6 karakter</small>
+					      </div>
+					      <div class="card-body">
+					        <form id="changePasswordForm" novalidate>
+					          <!-- Password saat ini -->
+					          <div class="form-group position-relative input-with-icon" style="--pw-nudge-y:1px;">
+					            <label for="currPassword">Password saat ini</label>
+					            <input type="password" id="currPassword" name="currentPassword"
+					                   class="form-control pw-input" minlength="6" required autocomplete="current-password">
+					            <button type="button" class="pw-toggle" data-pw-toggle
+					                    aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password"></button>
+					            <div class="invalid-feedback">Masukkan password saat ini.</div>
+					          </div>
+					
+					          <!-- Password baru -->
+					          <div class="form-group position-relative input-with-icon" style="--pw-nudge-y:1px;">
+					            <label for="newPassword">Password baru</label>
+					            <input type="password" id="newPassword" name="newPassword"
+					                   class="form-control pw-input" minlength="6" required autocomplete="new-password">
+					            <button type="button" class="pw-toggle" data-pw-toggle
+					                    aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password"></button>
+					            <div class="invalid-feedback">Masukkan password baru (min. 6 karakter).</div>
+					          </div>
+					
+					          <!-- Konfirmasi password -->
+					          <div class="form-group position-relative input-with-icon" style="--pw-nudge-y:1px;">
+					            <label for="confirmPassword">Konfirmasi password baru</label>
+					            <input type="password" id="confirmPassword" name="confirmPassword"
+					                   class="form-control pw-input" minlength="6" required autocomplete="new-password">
+					            <button type="button" class="pw-toggle" data-pw-toggle
+					                    aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password"></button>
+					            <div class="invalid-feedback">Konfirmasi password wajib diisi.</div>
+					          </div>
+					
+					          <!-- Spasi tombol dari kolom form -->
+					          <div class="mt-2">
+					            <button type="submit" class="btn btn-success mr-2">Ubah Password</button>
+					            <button type="reset" class="btn btn-outline-secondary">Reset</button>
+					          </div>
+					          <small id="changePwMsg" class="form-text text-muted mt-2"></small>
+					        </form>
+					      </div>
+					    </div>
 					  </div>
 					</div>
-
-					<!-- Profile page content-->
+					<!-- End of Profile page content-->
 				</div>
 			</div>
 			<!-- End of Main Content -->
@@ -266,13 +275,10 @@
 	<script type="module">
 	  import { guardPage } from '/js/auth-guard.js';
 	  import { mountUserMenu } from '/js/user-menu.js';
-	  import { auth, db } from '/js/firebase-init.js';
+	  import { app, auth, db } from '/js/firebase-init.js';
 	  import {
-	    onAuthStateChanged,
-	    updatePassword,
-	    EmailAuthProvider,
-	    reauthenticateWithCredential,
-	    sendPasswordResetEmail
+	    onAuthStateChanged, sendPasswordResetEmail, updatePassword,
+		reauthenticateWithCredential, EmailAuthProvider, updateProfile
 	  } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
 	  import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js';
 	
@@ -280,178 +286,188 @@
 	  guardPage({ allow:['viewer','contributor','admin'], loginPage:'/login_main.html', redirectIfDenied:'/login_main.html' });
 	
 	  // Pasang menu user
-	 
 		mountUserMenu({
 		    rootSelector: "#user-menu-root",
 		    profileUrl: "./profile.html",
 		    aboutUrl: "./about.html",
 		    loginUrl: "./login_main.html",
 		  });
-
-	
-	  // Elemen DOM
-	  const elEmail = document.getElementById('p-email');
-	  const elName  = document.getElementById('p-name');
-	  const elRole  = document.getElementById('p-role');
-	
-	  const formName = document.getElementById('formDisplayName');
-	  const msgName  = document.getElementById('msgName');
-	  const formPwd  = document.getElementById('formPassword');
-	  const msgPwd   = document.getElementById('msgPwd');
-	  const btnReset = document.getElementById('btnResetEmail');
-	  const msgReset = document.getElementById('msgReset');
-	
-	  // Tampilkan data profil
-	  onAuthStateChanged(auth, async (user) => {
-	    if (!user) return;
-	    try {
-	      const snap = await getDoc(doc(db, 'users', user.uid));
-	      const data = snap.exists() ? snap.data() : {};
-	      elEmail.textContent = user.email || data.email || '-';
-	      elName.textContent  = (data.displayName || user.displayName || '').trim() || '-';
-	      elRole.textContent  = data.role || 'viewer';
-	
-	      // Prefill form nama
-	      document.getElementById('displayName').value = (data.displayName || user.displayName || '').trim();
-	    } catch (e) {
-	      console.error('Load profile failed:', e);
-	    }
-	  });
-	
-	  // Ubah displayName (patuh rules: hanya field aman)
-	  formName.addEventListener('submit', async (e) => {
-	    e.preventDefault();
-	    const u = auth.currentUser;
-	    if (!u) return;
-	    msgName.style.display = 'none';
-	    try {
-	      await updateDoc(doc(db, 'users', u.uid), {
-	        displayName: document.getElementById('displayName').value.trim(),
-	        updatedAt: serverTimestamp()
-	      });
-	      elName.textContent = document.getElementById('displayName').value.trim() || '-';
-	      msgName.textContent = 'Nama tampil berhasil diperbarui.';
-	      msgName.style.display = 'block';
-	    } catch (e2) {
-	      console.error(e2);
-	      msgName.textContent = 'Gagal memperbarui nama.';
-	      msgName.style.display = 'block';
-	    }
-	  });
-	
-	  // Ubah password (dengan re-auth)
-	  formPwd.addEventListener('submit', async (e) => {
-	    e.preventDefault();
-	    const u = auth.currentUser;
-	    if (!u) return;
-	
-	    msgPwd.style.display = 'none';
-	
-	    const current = document.getElementById('currentPassword').value;
-	    const next    = document.getElementById('newPassword').value;
-	    const confirm = document.getElementById('confirmPassword').value;
-	
-	    if (!current || !next || !confirm) {
-	      msgPwd.textContent = 'Semua field wajib diisi.'; msgPwd.style.display = 'block'; return;
-	    }
-	    if (next !== confirm) {
-	      msgPwd.textContent = 'Konfirmasi password tidak cocok.'; msgPwd.style.display = 'block'; return;
-	    }
-	    if (next.length < 6) {
-	      msgPwd.textContent = 'Password baru minimal 6 karakter.'; msgPwd.style.display = 'block'; return;
-	    }
-	
-	    try {
-	      const cred = EmailAuthProvider.credential(u.email, current);
-	      await reauthenticateWithCredential(u, cred);  // Wajib jika credential lama kedaluwarsa
-	      await updatePassword(u, next);
-	
-	      msgPwd.textContent = 'Password berhasil diubah. Anda akan diminta login ulang.';
-	      msgPwd.style.display = 'block';
-	
-	      // Demi keamanan, paksa logout setelah ganti password
-	      setTimeout(() => { window.location.href = '/login_main.html'; }, 1200);
-	    } catch (err) {
-	      console.error(err);
-	      const map = {
-	        'auth/wrong-password': 'Password saat ini salah.',
-	        'auth/weak-password':  'Password baru terlalu lemah.',
-	        'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi nanti.',
-	        default: 'Gagal mengubah password.'
-	      };
-	      msgPwd.textContent = map[err?.code] ?? map.default;
-	      msgPwd.style.display = 'block';
-	    }
-	  });
-	
-	  // Alternatif: kirim email reset password
-	  btnReset.addEventListener('click', async () => {
-	    msgReset.style.display = 'none';
-	    const u = auth.currentUser;
-	    if (!u || !u.email) { msgReset.textContent = 'Email tidak tersedia.'; msgReset.style.display = 'block'; return; }
-	    try {
-	      await sendPasswordResetEmail(auth, u.email);
-	      msgReset.textContent = 'Tautan reset telah dikirim ke ' + u.email + '.';
-	      msgReset.style.display = 'block';
-	    } catch (e) {
-	      console.error(e);
-	      msgReset.textContent = 'Gagal mengirim email reset.'; msgReset.style.display = 'block';
-	    }
-	  });
-	</script>
-	
-	<script>
-	// Toggle Show/Hide untuk semua field password di profile.html
-	(function () {
-	  function attachToggles(scope) {
-		var toggles = (scope || document).querySelectorAll('[data-pw-toggle]');
-		toggles.forEach(function(btn){
-		  // Hindari double-binding
-		  if (btn.dataset.bound === '1') return;
-		  btn.dataset.bound = '1';
-
-		  btn.addEventListener('click', function(){
-			// Cari input password terdekat dalam wrapper .input-with-icon yang sama
-			var wrapper = btn.closest('.input-with-icon');
-			var input = wrapper ? wrapper.querySelector('.pw-input') : null;
-			if (!input) return;
-
-			var toShow = input.type === 'password';
-			input.type = toShow ? 'text' : 'password';
-
-			btn.setAttribute('aria-pressed', String(toShow));
-			btn.setAttribute('aria-label', toShow ? 'Sembunyikan password' : 'Tampilkan password');
-			btn.classList.toggle('is-on', toShow);
-
-			// Jaga UX: fokus & caret di akhir
-			input.focus({ preventScroll: true });
-			try { var len = input.value.length; input.setSelectionRange(len, len); } catch(e){}
+  
+		// Helper DOM
+		const $ = (sel, p = document) => p.querySelector(sel);
+		function setText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text ?? '-'; }
+		function toast(el, msg, ok=true) { if (!el) return; el.textContent = msg; el.style.color = ok ? '#1f9d55' : '#b91c1c'; }
+		
+		// Toggle Show/Hide untuk semua tombol data-pw-toggle dalam scope
+		function attachPwToggles(scope=document) {
+		  const toggles = scope.querySelectorAll('[data-pw-toggle]');
+		  toggles.forEach(btn => {
+		    if (btn.dataset.bound === '1') return; // hindari double
+		    btn.dataset.bound = '1';
+		    btn.addEventListener('click', () => {
+		      const wrap = btn.closest('.input-with-icon');
+		      const inp = wrap ? wrap.querySelector('.pw-input') : null;
+		      if (!inp) return;
+		      const toShow = inp.type === 'password';
+		      inp.type = toShow ? 'text' : 'password';
+		      btn.setAttribute('aria-pressed', String(toShow));
+		      btn.setAttribute('aria-label', toShow ? 'Sembunyikan password' : 'Tampilkan password');
+		      btn.classList.toggle('is-on', toShow);
+		      // fokus & caret
+		      inp.focus({ preventScroll: true });
+		      try { const L = inp.value.length; inp.setSelectionRange(L, L); } catch {}
+		    });
 		  });
-		});
-	  }
-
-	  // Pasang saat DOM siap
-	  if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', function(){ attachToggles(document); });
-	  } else {
-		attachToggles(document);
-	  }
-
-	  // Reset form -> kembalikan ikon & tipe input
-	  ['formDisplayName','changePasswordForm'].forEach(function(id){
-		var f = document.getElementById(id);
-		if (!f) return;
-		f.addEventListener('reset', function(){
-		  var inputs = f.querySelectorAll('.pw-input');
-		  inputs.forEach(function(inp){ inp.type = 'password'; });
-		  var btns = f.querySelectorAll('[data-pw-toggle]');
-		  btns.forEach(function(b){
-			b.setAttribute('aria-pressed','false');
-			b.classList.remove('is-on');
+		}
+		
+		document.addEventListener('DOMContentLoaded', () => {
+		  attachPwToggles(document); // pasang toggle pas DOM siap
+		
+		  // Ambil elemen jika ada (guard agar tidak error "null")
+		  const formName   = $('#formDisplayName');
+		  const nameInput  = $('#displayNameInput');
+		  const nameMsg    = $('#displayNameMsg');
+		  const btnResetLn = $('#btnSendResetLink');
+		  const resetMsg   = $('#resetLinkMsg');
+		  const formPw     = $('#changePasswordForm');
+		  const currPw     = $('#currPassword');
+		  const newPw      = $('#newPassword');
+		  const confPw     = $('#confirmPassword');
+		  const changeMsg  = $('#changePwMsg');
+		
+		  // 1) AUTH GUARD + LOAD PROFIL
+		  onAuthStateChanged(auth, async (user) => {
+		    try {
+		      if (!user) {
+		        window.location.href = 'login_main.html';
+		        return;
+		      }
+		      // Profil dasar dari Auth
+		      setText('profEmail', user.email || '-');
+		      setText('profDisplayName', user.displayName || '-');
+		
+		      // Profil role dari Firestore: users/{uid}
+		      try {
+		        const snap = await getDoc(doc(db, 'users', user.uid));
+		        const data = snap.exists() ? snap.data() : {};
+		        setText('profRole', data?.role || '-');
+		        // Prefill displayNameInput
+		        if (nameInput) nameInput.value = (user.displayName || data?.displayName || '') ?? '';
+		      } catch (e) {
+		        console.warn('Load Firestore profile failed:', e);
+		      }
+		    } catch (err) {
+		      console.error('Load profile failed:', err);
+		    }
 		  });
-		});
-	  });
-	})();
+		
+		  // 2) SAVE DISPLAY NAME
+		  if (formName) {
+		    formName.addEventListener('submit', async (e) => {
+		      e.preventDefault();
+		      if (!nameInput) return;
+		      const val = nameInput.value.trim();
+		      if (!val) {
+		        nameInput.classList.add('is-invalid');
+		        toast(nameMsg, 'Nama tampil wajib diisi.', false);
+		        return;
+		      }
+		      nameInput.classList.remove('is-invalid');
+		      try {
+		        const user = auth.currentUser;
+		        if (!user) throw new Error('Tidak ada sesi login.');
+		        // Update Auth
+		        await updateProfile(user, { displayName: val });
+        // Update Firestore
+        await updateDoc(doc(db, 'users', user.uid), {
+          displayName: val,
+          updatedAt: serverTimestamp()
+        });
+        setText('profDisplayName', val);
+        toast(nameMsg, 'Display name berhasil disimpan.');
+      } catch (err) {
+        console.error(err);
+        toast(nameMsg, 'Gagal menyimpan display name: ' + (err?.message || err), false);
+      }
+    });
+
+    formName.addEventListener('reset', () => {
+      if (nameInput) {
+        nameInput.classList.remove('is-invalid');
+      }
+      toast(nameMsg, '');
+    });
+  }
+
+  // 3) KIRIM TAUTAN RESET PASSWORD VIA EMAIL
+  if (btnResetLn) {
+    btnResetLn.addEventListener('click', async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user?.email) throw new Error('Email tidak tersedia.');
+        btnResetLn.disabled = true;
+        await sendPasswordResetEmail(auth, user.email);
+        toast(resetMsg, 'Tautan reset dikirim ke ' + user.email + '.');
+      } catch (err) {
+        console.error(err);
+        toast(resetMsg, 'Gagal mengirim tautan reset: ' + (err?.message || err), false);
+      } finally {
+        btnResetLn.disabled = false;
+      }
+    });
+  }
+
+  // 4) UBAH PASSWORD (reauthenticate + updatePassword)
+  if (formPw) {
+    formPw.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currPw || !newPw || !confPw) return;
+
+      // Validasi sederhana
+      const cp = currPw.value;
+      const np = newPw.value;
+      const kp = confPw.value;
+      if (!cp || !np || !kp) {
+        toast(changeMsg, 'Semua kolom password wajib diisi.', false);
+        return;
+      }
+      if (np.length < 6) {
+        toast(changeMsg, 'Password baru minimal 6 karakter.', false);
+        return;
+      }
+      if (np !== kp) {
+        toast(changeMsg, 'Konfirmasi password tidak cocok.', false);
+        return;
+      }
+
+      try {
+        const user = auth.currentUser;
+        if (!user?.email) throw new Error('Sesi pengguna tidak tersedia.');
+        // Reauth
+        const cred = EmailAuthProvider.credential(user.email, cp);
+        await reauthenticateWithCredential(user, cred);
+        // Update password
+        await updatePassword(user, np);
+        // Kosongkan form + reset ikon show/hide
+        formPw.reset();
+        formPw.querySelectorAll('.pw-input').forEach(inp => inp.type = 'password');
+        formPw.querySelectorAll('[data-pw-toggle]').forEach(b => {
+          b.setAttribute('aria-pressed','false'); b.classList.remove('is-on');
+        });
+        toast(changeMsg, 'Password berhasil diubah.');
+      } catch (err) {
+        console.error(err);
+        toast(changeMsg, 'Gagal mengubah password: ' + (err?.message || err), false);
+      }
+    });
+
+    formPw.addEventListener('reset', () => {
+      // Bersihkan invalid state / pesan
+      toast(changeMsg, '');
+    });
+  }
+});
+
 	</script>
 
 
