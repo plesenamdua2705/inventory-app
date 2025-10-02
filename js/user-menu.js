@@ -1,9 +1,19 @@
-// /js/user-menu.js (versi tanpa template HTML)
+// /js/user-menu.js (versi lengkap + ikon + modal konfirmasi logout)
+// ---------------------------------------------------------------
+// Ketergantungan:
+//  - ./firebase-init.js export { auth, db }
+//  - Firebase CDN v10.12.x (auth, firestore) seperti di halaman lain
+//  - (Opsional untuk modal): jQuery + Bootstrap JS (SB Admin 2 default)
+// ---------------------------------------------------------------
+
 import { auth, db } from "./firebase-init.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
-// ===== [PATCH] Inject Modal Logout =====
+/**
+ * Inject Modal Logout ke <body> (sekali saja).
+ * Modal Bootstrap 4: #logoutConfirmModal
+ */
 function ensureLogoutModalInDOM() {
   if (document.getElementById("logoutConfirmModal")) return; // sudah ada
 
@@ -31,25 +41,36 @@ function ensureLogoutModalInDOM() {
   document.body.appendChild(wrapper.firstElementChild);
 }
 
+/**
+ * Mount user menu (dropdown) ke container.
+ * @param {Object} options
+ *  - rootSelector: CSS selector kontainer mount
+ *  - profileUrl, aboutUrl, loginUrl
+ *  - showRoleBadge: tampilkan role di samping nama
+ */
 export function mountUserMenu({
   rootSelector = "#user-menu-root",
-  profileUrl = "./profile.html",
-  aboutUrl = "./about.html",
-  loginUrl = "./login_main.html",
+  profileUrl  = "./profile.html",
+  aboutUrl    = "./about.html",
+  loginUrl    = "./login_main.html",
   showRoleBadge = false,
 } = {}) {
   const root = document.querySelector(rootSelector);
-  if (!root) { console.warn("[user-menu] container tidak ditemukan:", rootSelector); return () => {}; }
-  
-  // Wrapper
+  if (!root) {
+    console.warn("[user-menu] container tidak ditemukan:", rootSelector);
+    return () => {};
+  }
+
+  // === Wrapper ===
   const wrap = document.createElement("div");
   wrap.className = "user-menu position-relative";
-  wrap.style.zIndex = "1030"; // agar modal (1050) selalu di atas
+  // Turunkan z-index agar modal Bootstrap (1050) selalu di atas dropdown
+  wrap.style.zIndex = "1030";
 
-  // Button
+  // === Button (avatar + name) ===
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.className = "user-menu__button btn btn-light d-flex align-items-center gap-2";
+  btn.className = "user-menu__button btn btn-light d-flex align-items-center gap-2"; // gap-2 no-op di BS4 (tidak masalah)
   btn.setAttribute("aria-haspopup", "true");
   btn.setAttribute("aria-expanded", "false");
 
@@ -67,7 +88,7 @@ export function mountUserMenu({
   btn.appendChild(avatar);
   btn.appendChild(nameEl);
 
-  // Dropdown
+  // === Dropdown ===
   const dropdown = document.createElement("div");
   dropdown.className = "user-menu__dropdown card shadow-sm";
   Object.assign(dropdown.style, { display: "none", position: "absolute", right: "0", top: "110%", minWidth: "200px" });
@@ -75,85 +96,98 @@ export function mountUserMenu({
   const ul = document.createElement("ul");
   ul.className = "list-group list-group-flush";
 
+  // Item: Profile
   const liP = document.createElement("li"); liP.className = "list-group-item";
   const aP = document.createElement("a");
-  aP.href = profileUrl; aP.dataset.userMenu = "profile"; aP.className = "text-decoration-none d-block"; aP.textContent = "Profile";
+  aP.href = profileUrl;
+  aP.dataset.userMenu = "profile";
+  aP.className = "text-decoration-none d-block";
+  aP.textContent = "Profile";
+  // Ikon Profile (FA4 + FA5)
+  {
+    const iconP = document.createElement("i");
+    iconP.className = "fa fa-user fas fa-user fa-sm fa-fw mr-2 text-gray-400";
+    aP.prepend(iconP);
+  }
   liP.appendChild(aP);
 
+  // Item: About
   const liA = document.createElement("li"); liA.className = "list-group-item";
   const aA = document.createElement("a");
-  aA.href = aboutUrl; aA.dataset.userMenu = "about"; aA.className = "text-decoration-none d-block"; aA.textContent = "About";
+  aA.href = aboutUrl;
+  aA.dataset.userMenu = "about";
+  aA.className = "text-decoration-none d-block";
+  aA.textContent = "About";
+  // Ikon About (FA4 + FA5)
+  {
+    const iconA = document.createElement("i");
+    iconA.className = "fa fa-info fas fa-info fa-sm fa-fw mr-2 text-gray-400";
+    aA.prepend(iconA);
+  }
   liA.appendChild(aA);
 
+  // Item: Logout
   const liL = document.createElement("li"); liL.className = "list-group-item";
   const btnLogout = document.createElement("button");
-  btnLogout.type = "button"; btnLogout.dataset.userMenu = "logout"; btnLogout.className = "btn btn-link text-danger p-0";
+  btnLogout.type = "button";
+  btnLogout.dataset.userMenu = "logout";
+  btnLogout.className = "btn btn-link text-danger p-0";
   btnLogout.textContent = "Logout";
+  // Ikon Logout (FA4 + FA5) + fallback otomatis ke FA6
+  {
+    const iconL = document.createElement("i");
+    iconL.className = "fa fa-sign-out fas fa-sign-out-alt fa-sm fa-fw mr-2 text-danger";
+    btnLogout.prepend(iconL);
+
+    // Fallback ke FA6 jika FA4/FA5 tidak tersedia
+    requestAnimationFrame(() => {
+      try {
+        const pseudo = getComputedStyle(iconL, '::before');
+        const content = pseudo && pseudo.content;
+        if (!content || content === 'none' || content === 'normal' || content === '""') {
+          iconL.className = "fa-solid fa-right-from-bracket fa-sm fa-fw mr-2 text-danger";
+        }
+      } catch { /* abaikan */ }
+    });
+  }
   liL.appendChild(btnLogout);
 
-  // Profile: fa v4 + fas v5
-  const iconP = document.createElement('i');
-  iconP.className = 'fa fa-user fas fa-user fa-sm fa-fw mr-2 text-gray-400';
-  aP.prepend(iconP);
-  
-  // About: fa v4 + fas v5 (pakai info; kalau lebih suka lingkaran, ganti ke fa-info-circle / fas fa-info-circle)
-  const iconA = document.createElement('i');
-  iconA.className = 'fa fa-info fas fa-info fa-sm fa-fw mr-2 text-gray-400';
-  aA.prepend(iconA);
-  
-  // Logout: fa v4 + fas v5 (sign-out vs sign-out-alt)
-  // Jika ingin tampilan yang lebih umum di FA5, ganti ke 'fas fa-sign-out-alt'
-  const iconL = document.createElement('i');
-  iconL.className = 'fa fa-sign-out fas fa-sign-out-alt fa-sm fa-fw mr-2 text-danger';
-  btnLogout.prepend(iconL);
-
-  // Fallback otomatis: jika FA5 gagal (ikon belum ter-render), pakai FA6
-  requestAnimationFrame(() => {
-    try {
-      const pseudo = getComputedStyle(iconL, '::before');
-      const content = pseudo && pseudo.content;
-      // Jika content kosong/"none"/"normal" → ikon belum resolve
-      if (!content || content === 'none' || content === 'normal' || content === '""') {
-        // Ganti ke nama ikon FA6
-        iconL.className = 'fa-solid fa-right-from-bracket fa-sm fa-fw mr-2 text-danger';
-      }
-    } catch (_) {
-      // Aman-aman saja jika browser tidak mendukung ::before inspection
-      // (Biarkan class dual FA4/FA5 tadi)
-    }
-  });
-
-  ul.appendChild(liP); ul.appendChild(liA); ul.appendChild(liL);
+  // Rakit dropdown
+  ul.appendChild(liP);
+  ul.appendChild(liA);
+  ul.appendChild(liL);
   dropdown.appendChild(ul);
 
+  // Mount
   wrap.appendChild(btn);
   wrap.appendChild(dropdown);
-  root.innerHTML = ""; // bersihkan kontainer, lalu mount
+  root.innerHTML = ""; // bersihkan kontainer
   root.appendChild(wrap);
 
-  ensureLogoutModalInDOM();
-
-  // Toggle
-  const setOpen = (open) => { btn.setAttribute("aria-expanded", String(open)); dropdown.style.display = open ? "block" : "none"; };
+  // === Toggle helpers ===
+  const setOpen = (open) => {
+    btn.setAttribute("aria-expanded", String(open));
+    dropdown.style.display = open ? "block" : "none";
+  };
   const toggle = () => setOpen(btn.getAttribute("aria-expanded") !== "true");
 
   btn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); toggle(); });
   dropdown.addEventListener("click", (e) => e.stopPropagation());
 
-  // Fallback jika ada preventDefault di tempat lain
+  // Fallback jika anchor dicegah default-nya di tempat lain
   dropdown.addEventListener("click", (e) => {
     const a = e.target.closest("a[href]");
     if (!a) return;
     setTimeout(() => { if (e.defaultPrevented) window.location.assign(a.getAttribute("href")); }, 0);
   }, true);
 
-  // Tutup di luar / Esc
+  // Tutup jika klik di luar / tekan Esc
   const onDocClick = (e) => { if (!root.contains(e.target)) setOpen(false); };
   const onEsc = (e) => { if (e.key === "Escape") setOpen(false); };
   document.addEventListener("click", onDocClick);
   document.addEventListener("keydown", onEsc);
 
-  // Auth
+  // === Auth: isi nama/avatar/role ===
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = loginUrl; return; }
     try {
@@ -175,17 +209,21 @@ export function mountUserMenu({
     }
   });
 
-  // Logout 
+  // === Inject modal konfirmasi logout ===
+  ensureLogoutModalInDOM();
+
+  // === Handler Logout (modal + fallback) ===
   btnLogout.addEventListener("click", async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setOpen(false);
-  
+    setOpen(false); // tutup dropdown dulu
+
     const hasBootstrapModal = typeof window.$ === "function" && typeof window.$.fn?.modal === "function";
     const modalEl = document.getElementById("logoutConfirmModal");
-  
+
     if (hasBootstrapModal && modalEl) {
       window.$(modalEl).modal("show");
+
       const okBtn = document.getElementById("confirmLogoutBtn");
       if (okBtn && okBtn.dataset.bound !== "1") {
         okBtn.dataset.bound = "1";
@@ -195,9 +233,17 @@ export function mountUserMenu({
         });
       }
     } else {
-      if (!window.confirm("Apakah Anda yakin ingin keluar?")) return;
+      // Fallback native confirm()
+      const ok = window.confirm("Apakah Anda yakin ingin keluar?");
+      if (!ok) return;
       try { await signOut(auth); }
       finally { window.location.href = loginUrl; }
     }
   });
-  
+
+  // Cleanup (jika perlu di-unmount)
+  return () => {
+    document.removeEventListener("click", onDocClick);
+    document.removeEventListener("keydown", onEsc);
+  };
+}
