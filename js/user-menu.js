@@ -63,6 +63,21 @@ export function mountUserMenu({
   btnLogout.textContent = "Logout";
   liL.appendChild(btnLogout);
 
+  // Profile: fa v4 + fas v5
+  const iconP = document.createElement('i');
+  iconP.className = 'fa fa-user fas fa-user fa-sm fa-fw mr-2 text-gray-400';
+  aP.prepend(iconP);
+  
+  // About: fa v4 + fas v5 (pakai info; kalau lebih suka lingkaran, ganti ke fa-info-circle / fas fa-info-circle)
+  const iconA = document.createElement('i');
+  iconA.className = 'fa fa-info fas fa-info fa-sm fa-fw mr-2 text-gray-400';
+  aA.prepend(iconA);
+  
+  // Logout: fa v4 + fas v5 (sign-out vs sign-out-alt)
+  // Jika ingin tampilan yang lebih umum di FA5, ganti ke 'fas fa-sign-out-alt'
+  const iconL = document.createElement('i');
+  iconL.className = 'fa fa-sign-out fas fa-sign-out-alt fa-sm fa-fw mr-2 text-danger';
+
   ul.appendChild(liP); ul.appendChild(liA); ul.appendChild(liL);
   dropdown.appendChild(ul);
 
@@ -124,3 +139,4 @@ export function mountUserMenu({
     document.removeEventListener("keydown", onEsc);
   };
 }
+
