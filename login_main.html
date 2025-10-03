@@ -1,111 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
-    <meta name="description" content="">
-    <meta name="author" content="">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+  <meta name="description" content="">
+  <meta name="author" content="">
 
-    <title>Login</title>
-	<!-- Fav icon -->
-	<link rel="icon" href="img/fav.png" type="image/png">
+  <title>Login</title>
+  <!-- Fav icon -->
+  <link rel="icon" href="img/fav.png" type="image/png">
 
-    <!-- Custom fonts for this template-->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+  <!-- Custom fonts for this template-->
+  <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
 
-    <!-- Custom styles for this template-->
-    <link href="css/sb-admin-2.css" rel="stylesheet">
+  <!-- Custom styles for this template-->
+  <link href="css/sb-admin-2.css" rel="stylesheet">
 
 </head>
+
 <body class="bg-light">
 
-	<div class="container">
-		<div class="row justify-content-center align-items-center min-vh-100">
-			<div class="col-lg-10">
-				<div class="login-container">
-				  <div class="login-image">
-					<img src="img/inventory.svg" alt="Login Illustration" />
-				  </div>
-				  <div class="login-form">
-					<i class="fas fa-fw fa-sign-in"></i>
-						<span><h2>E-STOCK</h2></span>
-						
-					<form id="loginForm" novalidate>
-					<!-- Email -->
-					  <div class="form-group">
-						<label for="email">Email</label>
-						<input id="email" name="email" type="email" class="form-control form-control-user" placeholder="" autocomplete="username" required>
-					  </div>
-					<!-- Password + Toggle -->
-					  <div class="form-group">
-						<label for="password" class="small text-gray-800 mb-1">Password</label>
-						
-						<div class="input-group">
-							<input id="password" name="password" type="password" class="form-control form-control-user"
-								   placeholder="••••••••" autocomplete="current-password" required minlength="6">
-							<div class="input-group-append">
-							  <button id="togglePassword" class="btn btn-outline-secondary" type="button"
-									  aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password">
-								<i id="icon-eye" class="fas fa-eye"></i>
-								<i id="icon-eye-slash" class="fas fa-eye-slash d-none"></i>
-							  </button>
-							</div>
-							<div class="invalid-feedback small">Password minimal 6 karakter.</div>
-						</div>
-					  </div>
-					  
-					  <!-- Remember & Forgot -->
-					  <div class="form-group d-flex justify-content-between align-items-center">
-						  <div class="custom-control custom-checkbox small">
-							<input type="checkbox" class="custom-control-input" id="rememberMe">
-							<label class="custom-control-label" for="rememberMe">Remember me</label>
-						  </div>
-						  <a>Forgot Password?</a>
-					 </div>
-					  
-						<!-- Button -->
-						<button id="btnLogin" type="submit" class="btn btn-primary btn-user btn-block" disabled>
-						  <span id="btnText">Login</span>
-						  <span id="spinner" class="spinner-border spinner-border-sm ml-2 d-none" role="status" aria-hidden="true"></span>
-						</button>
-						  
-					
-					  <div class="text-center mt-3">
-						<a href="forgot-password.html" id="btnForgot">Forgot Password?</a> 
-					  </div>
-					  
-					  <!-- Error Box -->
-					  <div id="errorBox" class="alert alert-danger small mt-3 d-none mb-0" role="alert" aria-live="polite"></div>
-					</form>
-				</div>
-			</div>
-		
-		  <footer>
-			<div class="copyright text-center my-auto">
-				<span>Copyright &copy; Production System Management 2025</span>
-			</div>
-		  </footer>
-		</div>
-	</div>
-	
-	<!-- End of Container -->
-	
-	
-	<script type="module">
-		import { auth, ensureUserDoc } from './js/firebase-init.js';
-		import {
-		  getAuth,
-		  onAuthStateChanged,
-		  signInWithEmailAndPassword,
-		  setPersistence,
-		  browserLocalPersistence,
-		  browserSessionPersistence
-		} from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
-		import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+  <div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+      <div class="col-lg-10">
+        <div class="login-container">
+          <div class="login-image">
+            <img src="img/inventory.svg" alt="Login Illustration" />
+          </div>
+          <div class="login-form">
+            <i class="fas fa-fw fa-sign-in"></i>
+            <span>
+              <h2>E-STOCK</h2>
+            </span>
 
-		// ====== Element refs ======
+            <form id="loginForm" novalidate>
+              <!-- Email -->
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" class="form-control form-control-user" placeholder=""
+                  autocomplete="username" required>
+              </div>
+
+              <!-- Password + Toggle -->
+              <div class="form-group">
+                <label for="password" class="small text-gray-800 mb-1">Password</label>
+
+                <div class="input-group">
+                  <input id="password" name="password" type="password" class="form-control form-control-user"
+                    placeholder="••••••••" autocomplete="current-password" required minlength="6">
+
+                  <div class="input-group-append">
+                    <button id="togglePassword" class="btn btn-outline-secondary" type="button"
+                      aria-label="Tampilkan password" aria-pressed="false" title="Show/Hide password">
+                      <i id="icon-eye" class="fas fa-eye"></i>
+                      <i id="icon-eye-slash" class="fas fa-eye-slash d-none"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Letakkan di sini, di luar input-group -->
+                <div class="invalid-feedback small">Password minimal 6 karakter.</div>
+
+
+
+                <!-- Remember & Forgot -->
+                <div class="form-group d-flex justify-content-between align-items-center">
+                  <div class="custom-control custom-checkbox small">
+                    <input type="checkbox" class="custom-control-input" id="rememberMe">
+                    <label class="custom-control-label" for="rememberMe">Remember me</label>
+                  </div>
+                  <a>Forgot Password?</a>
+                </div>
+
+                <!-- Button -->
+                <button id="btnLogin" type="submit" class="btn btn-primary btn-user btn-block" disabled>
+                  <span id="btnText">Login</span>
+                  <span id="spinner" class="spinner-border spinner-border-sm ml-2 d-none" role="status"
+                    aria-hidden="true"></span>
+                </button>
+
+
+                <div class="text-center mt-3">
+                  <a href="forgot-password.html" id="btnForgot">Forgot Password?</a>
+                </div>
+
+                <!-- Error Box -->
+                <div id="errorBox" class="alert alert-danger small mt-3 d-none mb-0" role="alert" aria-live="polite">
+                </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <footer>
+        <div class="copyright text-center my-auto">
+          <span>Copyright &copy; Production System Management 2025</span>
+        </div>
+      </footer>
+    </div>
+  </div>
+  <!-- End of Container -->
+
+
+  <script type="module">
+    import { auth, ensureUserDoc } from './js/firebase-init.js';
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      setPersistence,
+      browserLocalPersistence,
+      browserSessionPersistence
+    } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+
+    // ====== Element refs ======
     const form = document.getElementById('loginForm');
     const emailEl = document.getElementById('email');
     const passEl = document.getElementById('password');
@@ -146,7 +157,7 @@
 
     function validateForm() {
       const emailValid = emailRegex.test((emailEl.value || '').trim());
-      const passValid  = (passEl.value || '').length >= 6;
+      const passValid = (passEl.value || '').length >= 6;
 
       // Bootstrap validation UI
       emailEl.classList.toggle('is-invalid', emailEl.value && !emailValid);
@@ -214,7 +225,7 @@
         window.location.replace('souvenir.html'); // GANTI bila perlu
       }
     });
-	</script>
+  </script>
 
 </body>
 </html>
