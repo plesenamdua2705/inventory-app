@@ -61,7 +61,7 @@
                   </div>
                 </div>
 
-                <!-- Letakkan di sini, di luar input-group -->
+                <!-- minimum password -->
                 <div class="invalid-feedback small">Password minimal 6 karakter.</div>
 
                 <!-- Remember & Forgot -->
@@ -70,7 +70,6 @@
                     <input type="checkbox" class="custom-control-input" id="rememberMe">
                     <label class="custom-control-label" for="rememberMe">Remember me</label>
                   </div>
-                  <a>v1.0.1</a>
                 </div>
 
                 <!-- Button -->
@@ -146,9 +145,9 @@
       errorBox.classList.add('d-none');
     }
   
-    // Validasi sederhana berbasis HTML5
+    // Validasi berbasis HTML5
     function validateForm() {
-      // Gunakan constraint API bawaan browser
+      // Constraint API bawaan browser
       const emailValid = emailEl.value.trim().length > 0 && emailEl.checkValidity();
       const passValid  = passEl.value.length >= 6;
   
@@ -172,7 +171,7 @@
       passEl.focus({ preventScroll: true });
     });
   
-    // Input events → validasi dan bersihkan error
+    // Input events → validasi dan error cleaning
     emailEl.addEventListener('input', () => { clearError(); validateForm(); });
     passEl.addEventListener('input', () => { clearError(); validateForm(); });
   
