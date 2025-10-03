@@ -64,15 +64,13 @@
                 <!-- Letakkan di sini, di luar input-group -->
                 <div class="invalid-feedback small">Password minimal 6 karakter.</div>
 
-
-
                 <!-- Remember & Forgot -->
                 <div class="form-group d-flex justify-content-between align-items-center">
                   <div class="custom-control custom-checkbox small">
                     <input type="checkbox" class="custom-control-input" id="rememberMe">
                     <label class="custom-control-label" for="rememberMe">Remember me</label>
                   </div>
-                  <a>Forgot Password?</a>
+                  <a>v1.0.1</a>
                 </div>
 
                 <!-- Button -->
@@ -81,7 +79,6 @@
                   <span id="spinner" class="spinner-border spinner-border-sm ml-2 d-none" role="status"
                     aria-hidden="true"></span>
                 </button>
-
 
                 <div class="text-center mt-3">
                   <a href="forgot-password.html" id="btnForgot">Forgot Password?</a>
@@ -189,7 +186,7 @@
         setLoading(true);
         await setPersistence(auth, rememberEl?.checked ? browserLocalPersistence : browserSessionPersistence);
         await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
-        window.location.assign('souvenir.html'); // ganti kalau perlu
+        window.location.assign('index.html'); // ganti kalau perlu
       } catch (err) {
         console.error('[Login Error]', err);
         const code = err?.code || '';
