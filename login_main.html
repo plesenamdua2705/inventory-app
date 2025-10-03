@@ -103,7 +103,6 @@
   </div>
   <!-- End of Container -->
 
-
   <script type="module">
     import { auth, ensureUserDoc } from './js/firebase-init.js';
     import {
@@ -117,6 +116,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
 
     // ====== Element refs ======
+
     const form = document.getElementById('loginForm');
     const emailEl = document.getElementById('email');
     const passEl = document.getElementById('password');
@@ -125,50 +125,45 @@
     const btnText = document.getElementById('btnText');
     const spinner = document.getElementById('spinner');
     const errorBox = document.getElementById('errorBox');
-
+  
     const toggleBtn = document.getElementById('togglePassword');
     const iconEye = document.getElementById('icon-eye');
     const iconEyeSlash = document.getElementById('icon-eye-slash');
-
-    // ====== Helpers ======
-    const emailRegex =
-      /^[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@a-z0-9?(?:\.a-z0-9?)*$/i;
-
+  
+    let isLoading = false;
+  
     function setLoading(loading) {
-      if (loading) {
-        btnLogin.disabled = true;
-        spinner.classList.remove('d-none');
-        btnText.textContent = 'Memproses...';
-      } else {
-        spinner.classList.add('d-none');
-        btnText.textContent = 'Login';
-        validateForm(); // re-enable jika valid
-      }
+      isLoading = loading;
+      btnLogin.disabled = loading || !form.checkValidity();
+      spinner.classList.toggle('d-none', !loading);
+      btnText.textContent = loading ? 'Memproses...' : 'Login';
     }
-
+  
     function showError(message) {
-      errorBox.textContent = message;
+      errorBox.textContent = message || 'Terjadi kesalahan.';
       errorBox.classList.remove('d-none');
     }
     function clearError() {
       errorBox.textContent = '';
       errorBox.classList.add('d-none');
     }
-
+  
+    // Validasi sederhana berbasis HTML5
     function validateForm() {
-      const emailValid = emailRegex.test((emailEl.value || '').trim());
-      const passValid = (passEl.value || '').length >= 6;
-
-      // Bootstrap validation UI
+      // Gunakan constraint API bawaan browser
+      const emailValid = emailEl.value.trim().length > 0 && emailEl.checkValidity();
+      const passValid  = passEl.value.length >= 6;
+  
+      // Tampilkan feedback Bootstrap 4 hanya jika user sudah mengetik sesuatu
       emailEl.classList.toggle('is-invalid', emailEl.value && !emailValid);
       passEl.classList.toggle('is-invalid', passEl.value && !passValid);
-
-      const ok = emailValid && passValid && !spinner.classList.contains('showing');
-      btnLogin.disabled = !ok || !emailValid || !passValid || !errorBox.classList.contains('d-none') && false;
-      return emailValid && passValid;
+  
+      const ok = emailValid && passValid && !isLoading;
+      btnLogin.disabled = !ok;
+      return ok;
     }
-
-    // ====== Toggle Show/Hide Password ======
+  
+    // Toggle show/hide password
     toggleBtn.addEventListener('click', () => {
       const hidden = passEl.type === 'password';
       passEl.type = hidden ? 'text' : 'password';
@@ -178,32 +173,25 @@
       iconEyeSlash.classList.toggle('d-none', !hidden);
       passEl.focus({ preventScroll: true });
     });
-
-    // ====== Input events ======
+  
+    // Input events → validasi dan bersihkan error
     emailEl.addEventListener('input', () => { clearError(); validateForm(); });
     passEl.addEventListener('input', () => { clearError(); validateForm(); });
-
-    // ====== Submit ======
+  
+    // Submit
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearError();
       if (!validateForm()) return;
-
+  
       try {
         setLoading(true);
-
-        // Persistence dari Remember Me
-        await setPersistence(auth, rememberEl.checked ? browserLocalPersistence : browserSessionPersistence);
-
-        // Sign in
+        await setPersistence(auth, rememberEl?.checked ? browserLocalPersistence : browserSessionPersistence);
         await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
-
-        // Redirect sesudah login (ganti sesuai kebutuhan)
-        window.location.assign('souvenir.html');
+        window.location.assign('souvenir.html'); // ganti kalau perlu
       } catch (err) {
         console.error('[Login Error]', err);
         const code = err?.code || '';
-
         const map = {
           'auth/invalid-email': 'Format email tidak valid.',
           'auth/invalid-credential': 'Email atau password salah.',
@@ -218,13 +206,16 @@
         setLoading(false);
       }
     });
-
-    // ====== Auto-redirect jika sudah login ======
+  
+    // Auto-redirect to main page
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        window.location.replace('souvenir.html'); // GANTI bila perlu
+        window.location.replace('index.html'); // ganti kalau perlu
       }
     });
+  
+    // Inisialisasi awal
+    validateForm();
   </script>
 
 </body>
